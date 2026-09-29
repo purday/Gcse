@@ -20,6 +20,28 @@ export async function topicData() {
   return topicCodes;
 }
 
+// Pack SVGs are shown with <img> (no scripts), but a viewer could still open
+// one in its own tab, where it would run on this origin. Keep drawing only.
+const SVG_DROP = new Set(['script', 'foreignobject', 'iframe', 'object', 'embed', 'audio', 'video', 'animate', 'set', 'animatemotion', 'animatetransform', 'handler', 'listener']);
+export function sanitizeSvg(text) {
+  const doc = new DOMParser().parseFromString(text, 'image/svg+xml');
+  if (doc.querySelector('parsererror') || doc.documentElement.nodeName.toLowerCase() !== 'svg') return null;
+  const walk = (el) => {
+    for (const child of [...el.children]) {
+      if (SVG_DROP.has(child.nodeName.toLowerCase())) { child.remove(); continue; }
+      for (const a of [...child.attributes]) {
+        const n = a.name.toLowerCase();
+        const v = a.value.replace(/\s+/g, '').toLowerCase();
+        if (n.startsWith('on') || ((n === 'href' || n === 'xlink:href' || n === 'src') && !v.startsWith('#') && !v.startsWith('data:image/'))) child.removeAttribute(a.name);
+      }
+      walk(child);
+    }
+  };
+  for (const a of [...doc.documentElement.attributes]) if (a.name.toLowerCase().startsWith('on')) doc.documentElement.removeAttribute(a.name);
+  walk(doc.documentElement);
+  return new XMLSerializer().serializeToString(doc);
+}
+
 function findPrefix(zip) {
   if (zip.file('manifest.json')) return '';
   const candidates = Object.keys(zip.files)
@@ -144,7 +166,13 @@ export async function parsePack(input) {
     if (!path.startsWith(`${prefix}images/`) || zip.files[path].dir || !IMAGE_RE.test(path)) continue;
     const name = path.slice(`${prefix}images/`.length);
     const ext = name.split('.').pop().toLowerCase();
-    images[name] = await blob(zip, path, MIME[ext] || 'application/octet-stream');
+    if (ext === 'svg') {
+      const clean = sanitizeSvg(await zip.file(path).async('string'));
+      if (clean) images[name] = new Blob([clean], { type: MIME.svg });
+      else warnings.push(`images/${name} is not a valid SVG.`);
+    } else {
+      images[name] = await blob(zip, path, MIME[ext] || 'application/octet-stream');
+    }
   }
 
   const { byCode } = await topicData();

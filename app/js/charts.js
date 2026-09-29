@@ -1,7 +1,7 @@
 // Hand-rolled SVG charts (no library): score line with grade boundary
 // reference lines, and daily study-hours bars. Colours come from CSS tokens.
 
-import { h, fmtDate } from './util.js';
+import { h, fmtDate, esc } from './util.js';
 
 const NS = 'http://www.w3.org/2000/svg';
 function s(tag, attrs, ...kids) {
@@ -73,7 +73,7 @@ export function scoreChart(points, refs, { width = 640, height = 260 } = {}) {
     const on = () => {
       const r = svg.getBoundingClientRect();
       const k = r.width / width;
-      tip.show(x(p.date) * k, y(p.pct) * k, `<strong>${p.pct}%</strong> · ${p.score}/${p.max}<br>${p.label}<br>${fmtDate(p.date.slice(0, 10))}`);
+      tip.show(x(p.date) * k, y(p.pct) * k, `<strong>${esc(p.pct)}%</strong> · ${esc(p.score)}/${esc(p.max)}<br>${esc(p.label)}<br>${esc(fmtDate(p.date.slice(0, 10)))}`);
     };
     hit.addEventListener('pointerenter', on);
     hit.addEventListener('focus', on);
@@ -123,7 +123,7 @@ export function hoursChart(days, goalSecs, { width = 640, height = 150 } = {}) {
     const on = () => {
       const rr = svg.getBoundingClientRect();
       const k = rr.width / width;
-      tip.show((bx + w / 2) * k, top * k, `<strong>${hrs.toFixed(1)} h</strong><br>${fmtDate(d.date)}`);
+      tip.show((bx + w / 2) * k, top * k, `<strong>${hrs.toFixed(1)} h</strong><br>${esc(fmtDate(d.date))}`);
     };
     hit.addEventListener('pointerenter', on);
     hit.addEventListener('focus', on);

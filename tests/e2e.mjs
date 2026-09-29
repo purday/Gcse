@@ -251,6 +251,29 @@ await page.waitForSelector('.sheet');
 ok((await page.textContent('.sheet')).includes('packId'), 'error names the problem');
 await sheetClick(page, 'OK');
 
+step('Untrusted pack content cannot run script');
+{
+  const out = await page.evaluate(async () => {
+    const { renderMarkdown } = await import('./js/md.js');
+    const { sanitizeSvg } = await import('./js/pack.js');
+    const payloads = [
+      '<img src=x onerror="window.__pwned=1">', '<script>window.__pwned=1</script>', '[x](javascript:window.__pwned=1)',
+      '<javascript:window.__pwned=1>', '![x](javascript:alert(1))', '$\\href{javascript:alert(1)}{x}$', '<svg onload="window.__pwned=1">',
+      '[a][r]\n\n[r]: javascript:alert(1)', '<a href="javascript:alert(1)">x</a>', '<iframe src="https://example.com"></iframe>',
+    ];
+    const host = document.createElement('div');
+    host.innerHTML = payloads.map((p) => renderMarkdown(p)).join('');
+    document.body.appendChild(host);
+    await new Promise((r) => setTimeout(r, 200));
+    const bad = [...host.querySelectorAll('*')].filter((el) => [...el.attributes].some((a) => a.name.startsWith('on') || /javascript:/i.test(a.value)) || ['SCRIPT', 'IFRAME'].includes(el.tagName));
+    host.remove();
+    const svg = sanitizeSvg('<svg xmlns="http://www.w3.org/2000/svg" onload="x()"><script>x()</script><foreignObject><div/></foreignObject><a href="javascript:x()"><rect width="5" height="5" onclick="x()"/></a><circle r="2"/></svg>');
+    return { bad: bad.length, pwned: !!window.__pwned, svgClean: !/script|onload|onclick|javascript|foreignObject/i.test(svg) && svg.includes('<circle') };
+  });
+  ok(out.bad === 0 && !out.pwned, 'Markdown renderer neutralises HTML, script and javascript: links');
+  ok(out.svgClean, 'pack SVGs are stripped of scripts, handlers and external links');
+}
+
 step('Offline');
 await page.goto(`${URL}#/today`);
 await page.waitForSelector('#import-btn');

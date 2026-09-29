@@ -48,7 +48,7 @@ npm run serve          # http://localhost:8080
 
 ## Passcode
 
-The passcode is **not** in the repo. The library build reads it from `.passcode` (git-ignored) or `GCSE_PASSCODE`. It derives an AES-256 key (PBKDF2-SHA-256, 310,000 rounds) that encrypts every library paper and the question bank, so the papers only open inside the unlocked player. To change it: write the new passcode to `.passcode`, run `python3 tools/build_library.py`, commit `app/library/`, and tell him the new one.
+The passcode is **not** in the repo. The library build reads it from `.passcode` (git-ignored) or `GCSE_PASSCODE`. It derives an AES-256 key (PBKDF2-SHA-256, 600,000 rounds) that encrypts every library paper and the question bank, so the papers only open inside the unlocked player. To change it: write the new passcode to `.passcode`, run `python3 tools/build_library.py`, commit `app/library/`, and tell him the new one.
 
 ## Finishing the Past Paper Library
 

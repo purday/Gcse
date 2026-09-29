@@ -28,7 +28,7 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from packlib import ROOT, check_pack, now_iso  # noqa: E402
 
-ITERATIONS = 310_000
+ITERATIONS = 600_000  # OWASP 2023 guidance for PBKDF2-HMAC-SHA256
 MONTHS = {"01": "January", "03": "March", "06": "June", "11": "November", "05": "May", "10": "October", "02": "February", "09": "September", "04": "April", "07": "July", "08": "August", "12": "December"}
 
 
@@ -43,7 +43,8 @@ def derive(passcode: str, salt: bytes) -> bytes:
 def encrypt(key: bytes, data: bytes) -> bytes:
     # Deterministic IV (HMAC of the plaintext): identical input gives identical
     # output, so unchanged papers keep their file name and cached copies.
-    iv = hmac.new(key, data, hashlib.sha256).digest()[:12]
+    iv_key = hashlib.sha256(b"gcse-library-iv" + key).digest()  # separate key for IV derivation
+    iv = hmac.new(iv_key, data, hashlib.sha256).digest()[:12]
     return iv + AESGCM(key).encrypt(iv, data, None)
 
 
