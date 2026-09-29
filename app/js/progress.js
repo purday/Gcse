@@ -4,7 +4,7 @@ import { kvGet, kvSet } from './db.js';
 import { nowISO, todayISO, addDays, ts, parseDate } from './util.js';
 
 const SR_DAYS = [1, 3, 7];
-const MERGE_ARRAYS = ['scores', 'mistakes', 'realPapersUsed', 'sessions', 'attempts', 'gradeEstimates', 'bankQuestionsUsed'];
+const MERGE_ARRAYS = ['scores', 'mistakes', 'realPapersUsed', 'sessions', 'attempts', 'gradeEstimates', 'bankQuestionsUsed', 'markLog', 'verdicts'];
 const TUTOR_OWNED = ['topics', 'gradeEstimates', 'plan', 'notes', 'student'];
 
 export function emptyProgress() {
@@ -19,6 +19,8 @@ export function emptyProgress() {
     mistakes: [],
     realPapersUsed: [],
     bankQuestionsUsed: [],
+    markLog: [],
+    verdicts: [],
     plan: {},
     sessions: [],
     attempts: [],
@@ -129,24 +131,48 @@ export async function markRealPaperUsed(libraryId, packId) {
 }
 
 // ---- Topics and spaced repetition ------------------------------------------
+// Topic state is derived from markLog (one entry per marked question) and
+// verdicts, so progress from different devices/snapshots merges without loss.
+// The tutor helper implements the same rule (FORMAT.md 4.3).
 
-export function applyTopicResult(topic, full, date, marksAwarded, marksAvailable) {
-  topic.attempts = (topic.attempts || 0) + 1;
-  topic.marksAwarded = (topic.marksAwarded || 0) + marksAwarded;
-  topic.marksAvailable = (topic.marksAvailable || 0) + marksAvailable;
-  topic.correctDates = topic.correctDates || [];
-  topic.lastPracticed = date;
-  if (full) {
-    if (!topic.correctDates.includes(date)) topic.correctDates.push(date);
-    topic.srStage = Math.min((topic.srStage ?? -1) + 1, SR_DAYS.length - 1);
-  } else {
-    topic.srStage = 0;
+export function recomputeTopics(p) {
+  const byTopic = new Map();
+  for (const e of p.markLog || []) {
+    for (const code of e.topics || []) {
+      if (!byTopic.has(code)) byTopic.set(code, new Map());
+      const days = byTopic.get(code);
+      if (!days.has(e.date)) days.set(e.date, []);
+      days.get(e.date).push(e);
+    }
   }
-  topic.nextDue = addDays(date, SR_DAYS[topic.srStage]);
-  topic.secure = topic.correctDates.length >= 3;
-  const rate = topic.marksAvailable ? topic.marksAwarded / topic.marksAvailable : 0;
-  topic.status = topic.secure ? 'green' : rate >= 0.5 || topic.correctDates.length ? 'amber' : 'red';
-  return topic;
+  const latestVerdict = {};
+  for (const v of p.verdicts || []) {
+    const cur = latestVerdict[v.topic];
+    if (!cur || v.date > cur.date || (v.date === cur.date && v.id > cur.id)) latestVerdict[v.topic] = v;
+  }
+  for (const [code, days] of byTopic) {
+    const t = { note: p.topics[code]?.note || '' };
+    t.attempts = 0; t.marksAwarded = 0; t.marksAvailable = 0; t.correctDates = [];
+    let stage = -1;
+    for (const date of [...days.keys()].sort()) {
+      const es = days.get(date);
+      const got = es.reduce((a, e) => a + (e.awarded || 0), 0);
+      const max = es.reduce((a, e) => a + (e.max || 0), 0);
+      const dayCorrect = es.some((e) => e.max > 0 && e.awarded >= e.max) && got * 3 >= max * 2;
+      t.attempts += es.length; t.marksAwarded += got; t.marksAvailable += max;
+      if (dayCorrect) { t.correctDates.push(date); stage = Math.min(stage + 1, SR_DAYS.length - 1); } else stage = 0;
+      t.lastPracticed = date;
+    }
+    t.srStage = Math.max(stage, 0);
+    t.nextDue = addDays(t.lastPracticed, SR_DAYS[t.srStage]);
+    t.secure = t.correctDates.length >= 3;
+    const rate = t.marksAvailable ? t.marksAwarded / t.marksAvailable : 0;
+    const v = latestVerdict[code];
+    const weak = v && v.verdict === 'weak' && v.date >= t.lastPracticed;
+    t.status = t.secure ? 'green' : weak || (rate < 0.5 && !t.correctDates.length) ? 'red' : 'amber';
+    p.topics[code] = t;
+  }
+  return p;
 }
 
 export function dueTopics(p, today = todayISO()) {
@@ -183,17 +209,17 @@ export function applyFeedback(p, fb, meta) {
         note: l.reason || '', resolved: false, reviewedDates: [],
       });
     });
-    const full = q.marksAwarded >= q.maxMarks && q.maxMarks > 0;
-    for (const code of q.topics || []) {
-      p.topics[code] = applyTopicResult(p.topics[code] || {}, full, date, q.marksAwarded || 0, q.maxMarks || 0);
-    }
+    upsert(p.markLog, {
+      id: `${fb.forPackId}#${attemptNo}:${q.questionId}`, date, packId: fb.forPackId, questionId: q.questionId,
+      topics: q.topics || [], awarded: q.marksAwarded || 0, max: q.maxMarks || 0,
+    });
   }
   for (const t of fb.topics || []) {
-    if (!t.topic || !p.topics[t.topic]) continue;
-    if (t.note) p.topics[t.topic].note = t.note;
-    if (t.verdict === 'weak' && !p.topics[t.topic].secure) p.topics[t.topic].status = 'red';
+    if (!t.topic) continue;
+    upsert(p.verdicts, { id: `${fb.forPackId}#${attemptNo}:${t.topic}`, date, topic: t.topic, verdict: t.verdict });
+    if (t.note) p.topics[t.topic] = { ...(p.topics[t.topic] || {}), note: t.note };
   }
-  return p;
+  return recomputeTopics(p);
 }
 
 // FORMAT.md 4.2
@@ -209,12 +235,14 @@ export async function mergeIncoming(incoming) {
   if (newer) {
     result = inc;
     for (const k of MERGE_ARRAYS) result[k] = unionById(inc[k], local[k]);
+    result.topics = { ...local.topics, ...inc.topics };
   } else {
     result = local;
-    for (const k of TUTOR_OWNED) if (inc[k] !== undefined) result[k] = inc[k];
+    for (const k of TUTOR_OWNED) if (inc[k] !== undefined && k !== 'topics') result[k] = inc[k];
     for (const k of MERGE_ARRAYS) result[k] = unionById(inc[k], local[k]);
+    result.topics = { ...local.topics, ...inc.topics };
   }
-  cache = normalise(result);
+  cache = recomputeTopics(normalise(result));
   cache.updatedAt = newer ? inc.updatedAt : nowISO();
   cache.updatedBy = newer ? inc.updatedBy || 'tutor' : 'app';
   await kvSet('progress', cache);

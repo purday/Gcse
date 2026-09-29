@@ -22,7 +22,13 @@ async function addReference(zip) {
     const idx = await libraryIndex();
     if (idx.questionbank) {
       const res = await fetch(`library/${idx.questionbank}`);
-      if (res.ok) zip.file('reference/questionbank.json', await decryptBytes(await res.arrayBuffer()));
+      if (res.ok) {
+        // Wrapped in base64 like mark schemes, so the answers are not plain text in his Downloads.
+        const bytes = new Uint8Array(await decryptBytes(await res.arrayBuffer()));
+        let bin = '';
+        for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+        zip.file('reference/questionbank.json', JSON.stringify({ encoding: 'base64', data: btoa(bin) }));
+      }
     }
   } catch { /* no bank yet */ }
 }
@@ -87,8 +93,8 @@ export async function renderDone(root, attemptId, go) {
     return;
   }
   const pack = await getPack(att.packId);
-  let res = att.results;
-  if (!res) res = await buildResults(att.id);
+  // Rebuild every time so the zip always carries his latest progress.json.
+  const res = await buildResults(att.id);
   const qs = pack.questions;
   const answered = qs.filter((q) => {
     const a = att.answers[q.id];

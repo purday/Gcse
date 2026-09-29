@@ -162,7 +162,9 @@ const dims = execFileSync('python3', ['-c', `from PIL import Image; im=Image.ope
 ok(dims[0] === 'JPEG' && Math.max(+dims[1], +dims[2]) === 1200, `photo compressed to JPEG ${dims[1]}x${dims[2]} (from 3024x4032, ${Math.round(photoBytes.length / 1024)} KB)`);
 const prog = JSON.parse(await rz.file('progress.json').async('string'));
 ok(prog.realPapersUsed.some((r) => r.id === 'test-2019-06-1h'), 'progress.json marks the real paper as used');
-const qbInZip = JSON.parse(await rz.file('reference/questionbank.json').async('string'));
+const qbWrapped = JSON.parse(await rz.file('reference/questionbank.json').async('string'));
+const qbInZip = JSON.parse(Buffer.from(qbWrapped.data, 'base64').toString('utf8'));
+ok(qbWrapped.encoding === 'base64', 'question bank in the zip is base64-wrapped like mark schemes');
 ok(qbInZip.questions.length === 48 && rz.file('reference/topics.json') && rz.file('reference/exam.json') && rz.file('reference/topicmap.json'), 'reference/ has question bank (decrypted), topics, topic map and exam config');
 ok(results.activeSecs >= 3, `active time recorded (${results.activeSecs}s)`);
 ok(prog.attempts.length === 1 && prog.sessions.length >= 1 && prog.sessions[0].secs >= 3, 'progress.json has the attempt and its study session');

@@ -234,7 +234,9 @@ async function renderToday() {
 
 // ---- Papers (library) ---------------------------------------------------------
 
+let opening = false;
 async function confirmSitPaper(entry) {
+  if (opening) return;
   const ok = await sheet({
     title: `${entry.series} · Paper ${entry.paper}`,
     body: h('div', null,
@@ -242,7 +244,8 @@ async function confirmSitPaper(entry) {
       h('p', null, 'Treat it like the real exam: the clock starts when you tap Start, and your answers are submitted automatically when it reaches zero. Have paper, a pen and (if allowed) your calculator ready.')),
     actions: [{ label: 'Not now', value: false }, { label: 'Start', value: true, kind: 'primary' }],
   });
-  if (!ok) return;
+  if (!ok || opening) return;
+  opening = true;
   toast('Opening the paper…', 'busy');
   try {
     const pack = await loadLibraryPack(entry.libraryId);
@@ -250,6 +253,8 @@ async function confirmSitPaper(entry) {
     go(`#/sit/${id}`);
   } catch (e) {
     toast(e.message, 'bad');
+  } finally {
+    opening = false;
   }
 }
 

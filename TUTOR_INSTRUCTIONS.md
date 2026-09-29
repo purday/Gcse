@@ -46,7 +46,7 @@ Every results zip contains a `reference/` folder written by the player. **Prefer
 | `reference/topics.json` | The 97 spec topic codes (N1–S6), names, spec wording, grade band (4-5, 6, 7, 8-9) |
 | `reference/exam.json` | Exam dates and grade boundaries (last four series) |
 
-The same files are in the Project knowledge as a fallback. `T.load_results(path)` puts them in `R["reference"]`.
+The same files are in the Project knowledge as a fallback. `T.load_results(path)` puts them in `R["reference"]` (it unwraps the base64-wrapped question bank for you; `T.load_questionbank(path)` does the same for the knowledge copy).
 
 ## 4. Marking a results zip (the main loop)
 
@@ -112,7 +112,7 @@ Follow FORMAT.md 1.5 exactly: one entry in `questions` per question in the pack,
 prog2 = T.apply_marking(prog, fb, m, res)   # scores, grade estimates, mistakes, topics (mastery + spaced repetition), real papers
 ```
 
-`apply_marking` implements the rules exactly (FORMAT.md 4.1): a topic is **secure (green) only after fully correct answers on 3 different dates**; spaced repetition reviews are due **1, 3 and 7 days** after practice; a wrong answer resets the topic to a 1-day review. Also:
+`apply_marking` adds a `markLog` entry per question and a `verdicts` entry per topic, then recomputes every topic with the rule in FORMAT.md 4.3: one practice per topic per day; a topic is **secure (green) only after correct answers on 3 different days**; spaced-repetition reviews are due **1, 3 and 7 days** after correct practice; a day that is not correct resets it to a 1-day review; a `"weak"` verdict makes it red. Never edit `topics` by hand except `note`. Also:
 
 - When he gets a topic fully right that has open mistakes, call `T.resolve_mistakes(prog2, code)`.
 - Keep `sessions` and `attempts` exactly as they came (the player owns them).
@@ -314,7 +314,10 @@ def load_results(path: str, extract_to: str = "/tmp/results") -> dict:
     for ref in ("questionbank.json", "topics.json", "topicmap.json", "exam.json"):
         raw = rd(f"reference/{ref}")
         if raw:
-            out["reference"][ref[:-5]] = json.loads(raw)
+            obj = json.loads(raw)
+            if isinstance(obj, dict) and obj.get("encoding") == "base64":  # the bank is wrapped like mark schemes
+                obj = json.loads(base64.b64decode(obj["data"]).decode("utf-8"))
+            out["reference"][ref[:-5]] = obj
     os.makedirs(extract_to, exist_ok=True)
     for a in out["results"]["answers"]:
         files = []
@@ -356,7 +359,14 @@ def build_pack(manifest: dict, questions: list | None = None, markscheme: dict |
 
 
 def check_pack(data: bytes, topic_codes: set | None = None) -> tuple[list, list]:
-    """Mirror of the player's import checks. Returns (errors, warnings)."""
+    """Mirror of the player's import checks (stricter). Returns (errors, warnings); never raises."""
+    try:
+        return _check_pack(data, topic_codes)
+    except Exception as e:  # noqa: BLE001
+        return [f"pack could not be checked: {type(e).__name__}: {e}"], []
+
+
+def _check_pack(data: bytes, topic_codes: set | None = None) -> tuple[list, list]:
     errors, warnings = [], []
     z = zipfile.ZipFile(io.BytesIO(data))
     names = set(z.namelist())
@@ -405,13 +415,17 @@ def check_pack(data: bytes, topic_codes: set | None = None) -> tuple[list, list]
         if "markscheme.json" not in names:
             errors.append("markscheme.json missing")
         else:
-            ms = unwrap_markscheme(z.read("markscheme.json"))
-            for q in qs:
-                e = ms.get("questions", {}).get(q["id"])
+            try:
+                ms = unwrap_markscheme(z.read("markscheme.json"))
+            except Exception:  # noqa: BLE001
+                ms = None
+                errors.append('markscheme.json must be {"encoding": "base64", "data": <base64 of the JSON>}')
+            for q in (qs if ms else []):
+                e = ms.get("questions", {}).get(q.get("id"))
                 if not e:
-                    errors.append(f"markscheme has no entry for {q['id']}")
+                    errors.append(f"markscheme has no entry for {q.get('id')}")
                 elif e.get("maxMarks") != q.get("marks"):
-                    errors.append(f"markscheme {q['id']} maxMarks != marks")
+                    errors.append(f"markscheme {q.get('id')} maxMarks != marks")
     if m.get("type") == "feedback":
         if "feedback.json" not in names:
             errors.append("feedback.json missing")
@@ -442,7 +456,7 @@ def check_pack(data: bytes, topic_codes: set | None = None) -> tuple[list, list]
                 for n in names:
                     if n.startswith("next/") and not n.endswith("/"):
                         s.writestr(n[5:], z.read(n))
-            e2, w2 = check_pack(sub.getvalue(), topic_codes)
+            e2, w2 = _check_pack(sub.getvalue(), topic_codes)
             errors += [f"next/: {e}" for e in e2]
             warnings += [f"next/: {w}" for w in w2]
     return errors, warnings
@@ -497,25 +511,50 @@ def _upsert(lst: list, item: dict):
     lst.append(item)
 
 
-def update_topic(progress: dict, code: str, full: bool, day: str, awarded: int, available: int) -> dict:
-    """Spaced repetition + mastery rules from FORMAT.md 4.1."""
-    t = progress.setdefault("topics", {}).setdefault(code, {})
-    t["attempts"] = t.get("attempts", 0) + 1
-    t["marksAwarded"] = t.get("marksAwarded", 0) + awarded
-    t["marksAvailable"] = t.get("marksAvailable", 0) + available
-    t.setdefault("correctDates", [])
-    t["lastPracticed"] = day
-    if full:
-        if day not in t["correctDates"]:
-            t["correctDates"].append(day)
-        t["srStage"] = min(t.get("srStage", -1) + 1, len(SR_DAYS) - 1)
-    else:
-        t["srStage"] = 0
-    t["nextDue"] = add_days(day, SR_DAYS[t["srStage"]])
-    t["secure"] = len(t["correctDates"]) >= 3
-    rate = t["marksAwarded"] / t["marksAvailable"] if t["marksAvailable"] else 0
-    t["status"] = "green" if t["secure"] else ("amber" if rate >= 0.5 or t["correctDates"] else "red")
-    return t
+def recompute_topics(progress: dict) -> dict:
+    """Derive topic mastery + spaced repetition from markLog and verdicts (FORMAT.md 4.3).
+
+    One practice per topic per day: the day counts as correct when at least one
+    question on the topic got full marks and the day's marks on it are >= 2/3.
+    Correct day -> next review 1, 3, then 7 days later; any other day -> 1 day.
+    Secure (green) = correct on 3 different days. Same rule as the player.
+    """
+    topics = progress.setdefault("topics", {})
+    by_topic: dict = {}
+    for e in progress.get("markLog", []):
+        for code in e.get("topics", []):
+            by_topic.setdefault(code, {}).setdefault(e["date"], []).append(e)
+    latest: dict = {}
+    for v in progress.get("verdicts", []):
+        cur = latest.get(v["topic"])
+        if not cur or (v["date"], v["id"]) > (cur["date"], cur["id"]):
+            latest[v["topic"]] = v
+    for code, days in by_topic.items():
+        t = {"note": (topics.get(code) or {}).get("note", ""), "attempts": 0, "marksAwarded": 0, "marksAvailable": 0, "correctDates": []}
+        stage = -1
+        for day in sorted(days):
+            es = days[day]
+            got = sum(e.get("awarded", 0) for e in es)
+            mx = sum(e.get("max", 0) for e in es)
+            correct = any(e.get("max", 0) > 0 and e.get("awarded", 0) >= e["max"] for e in es) and got * 3 >= mx * 2
+            t["attempts"] += len(es)
+            t["marksAwarded"] += got
+            t["marksAvailable"] += mx
+            if correct:
+                t["correctDates"].append(day)
+                stage = min(stage + 1, len(SR_DAYS) - 1)
+            else:
+                stage = 0
+            t["lastPracticed"] = day
+        t["srStage"] = max(stage, 0)
+        t["nextDue"] = add_days(t["lastPracticed"], SR_DAYS[t["srStage"]])
+        t["secure"] = len(t["correctDates"]) >= 3
+        rate = t["marksAwarded"] / t["marksAvailable"] if t["marksAvailable"] else 0
+        v = latest.get(code)
+        weak = bool(v and v.get("verdict") == "weak" and v["date"] >= t["lastPracticed"])
+        t["status"] = "green" if t["secure"] else ("red" if weak or (rate < 0.5 and not t["correctDates"]) else "amber")
+        topics[code] = t
+    return progress
 
 
 def grade_for_total(total240: float, exam: dict) -> dict:
@@ -541,7 +580,7 @@ def paper_grade(score80: int, exam: dict) -> dict:
 def apply_marking(progress: dict, fb: dict, manifest: dict, results: dict | None = None) -> dict:
     """Update progress.json from your feedback.json. Returns the updated copy (updatedBy tutor)."""
     p = json.loads(json.dumps(progress or {}))
-    for k in ("scores", "gradeEstimates", "mistakes", "realPapersUsed", "sessions", "attempts", "bankQuestionsUsed"):
+    for k in ("scores", "gradeEstimates", "mistakes", "realPapersUsed", "sessions", "attempts", "bankQuestionsUsed", "markLog", "verdicts"):
         p.setdefault(k, [])
     p.setdefault("topics", {})
     p.setdefault("schemaVersion", 1)
@@ -559,15 +598,22 @@ def apply_marking(progress: dict, fb: dict, manifest: dict, results: dict | None
             _upsert(p["mistakes"], {"id": f"m-{fb['forPackId']}-{q['questionId']}-{i}", "date": day, "packId": fb["forPackId"],
                                     "questionId": q["questionId"], "topic": (q.get("topics") or [None])[0], "type": l["type"],
                                     "note": l["reason"], "resolved": False, "reviewedDates": []})
-        full = q["maxMarks"] > 0 and q["marksAwarded"] >= q["maxMarks"]
-        for code in q.get("topics", []):
-            update_topic(p, code, full, day, q["marksAwarded"], q["maxMarks"])
+        _upsert(p["markLog"], {"id": f"{fb['forPackId']}#{attempt_no}:{q['questionId']}", "date": day, "packId": fb["forPackId"],
+                               "questionId": q["questionId"], "topics": q.get("topics", []), "awarded": q["marksAwarded"], "max": q["maxMarks"]})
     for t in fb.get("topics", []):
-        if t["topic"] in p["topics"] and t.get("note"):
-            p["topics"][t["topic"]]["note"] = t["note"]
+        _upsert(p["verdicts"], {"id": f"{fb['forPackId']}#{attempt_no}:{t['topic']}", "date": day, "topic": t["topic"], "verdict": t.get("verdict")})
+        if t.get("note"):
+            p["topics"].setdefault(t["topic"], {})["note"] = t["note"]
+    recompute_topics(p)
     p["updatedAt"] = now_iso()
     p["updatedBy"] = "tutor"
     return p
+
+
+def load_questionbank(path: str) -> dict:
+    """Read questionbank.json (plain or base64-wrapped) from the Project knowledge or a file."""
+    obj = json.load(open(path, encoding="utf-8"))
+    return json.loads(base64.b64decode(obj["data"]).decode("utf-8")) if obj.get("encoding") == "base64" else obj
 
 
 def resolve_mistakes(progress: dict, topic: str, day: str | None = None):
@@ -956,7 +1002,8 @@ results.json           his answers
 photos/                JPEG photos of working, about 1200 px on the long edge
 progress.json          his full current progress (section 4)
 reference/             copies of the player's reference data, so the tutor always has current files:
-  questionbank.json    the real question bank (section 3), when the library is installed
+  questionbank.json    the real question bank (section 3), when the library is installed,
+                       wrapped like markscheme.json: { "encoding": "base64", "data": "..." }
   topicmap.json        topic frequency, typical marks, common mistakes
   topics.json          spec topic codes and names
   exam.json            exam dates and grade boundaries
@@ -1082,6 +1129,12 @@ One JSON object holds his whole study history. The player keeps it in IndexedDB,
   "bankQuestionsUsed": [
     { "id": "aqa-2019-11-2h:q12.1", "packId": "L-2026-10-03-quadratics", "date": "2026-10-03" }
   ],
+  "markLog": [
+    { "id": "L-2026-10-03-quadratics#1:q1", "date": "2026-10-03", "packId": "L-2026-10-03-quadratics", "questionId": "q1", "topics": ["A18"], "awarded": 1, "max": 2 }
+  ],
+  "verdicts": [
+    { "id": "L-2026-10-03-quadratics#1:A18", "date": "2026-10-03", "topic": "A18", "verdict": "developing" }
+  ],
   "plan": { "phase": "secure-6", "note": "Full real paper due 2026-10-06" },
   "sessions": [
     { "id": "s-1759512345678", "date": "2026-10-03", "packId": "L-2026-10-03-quadratics", "attemptId": "a-1759512345678", "secs": 3190 }
@@ -1099,7 +1152,9 @@ One JSON object holds his whole study history. The player keeps it in IndexedDB,
 |---|---|---|
 | `updatedAt` | both | **must** change on every edit. It is the version number. |
 | `updatedBy` | both | `"app"` or `"tutor"`. |
-| `topics` | tutor | Keyed by spec code. `status`: `"red"` (weak / knowledge gap), `"amber"` (developing), `"green"` (secure). `secure` becomes `true` only when `correctDates` holds **3 or more different dates** with a fully correct answer on that topic. `srStage` 0, 1, 2 means the next review is 1, 3, 7 days after `lastPracticed`; `nextDue` is that date. A wrong answer resets `srStage` to 0. |
+| `markLog` | both | One entry per marked question, `id` = `<packId>#<attemptNo>:<questionId>`. Append-only; this is what topic mastery is computed from (4.3). |
+| `verdicts` | both | One entry per topic verdict in a feedback, `id` = `<packId>#<attemptNo>:<topic>`. |
+| `topics` | derived | Keyed by spec code, **recomputed from `markLog` and `verdicts`** by both sides with the rule in 4.3; only `note` is written by hand (tutor). `status`: `"red"` (weak), `"amber"` (developing), `"green"` (secure). |
 | `scores` | tutor (player adds from feedback) | One per marked attempt. `id` = `<packId>#<attemptNo>`. |
 | `gradeEstimates` | tutor | One per marking, newest last. |
 | `mistakes` | tutor (player adds from feedback) | One per lost-mark group. Never delete: set `resolved: true`. |
@@ -1112,10 +1167,23 @@ One JSON object holds his whole study history. The player keeps it in IndexedDB,
 
 1. If `updatedAt` is **newer than the local copy**, the incoming file replaces the local progress.
 2. If it is older than the local copy but newer than the last tutor copy the player accepted, the incoming **tutor-owned** sections (`topics`, `gradeEstimates`, `plan`, `notes`, `student`) still replace the local ones. This covers him studying between sending results and getting feedback.
-3. In both cases the arrays `scores`, `mistakes`, `realPapersUsed`, `bankQuestionsUsed`, `gradeEstimates`, `sessions` and `attempts` are merged by `id` afterwards, so nothing recorded on the device is lost. On an `id` clash the incoming entry wins.
+3. In both cases the arrays `scores`, `mistakes`, `realPapersUsed`, `bankQuestionsUsed`, `gradeEstimates`, `markLog`, `verdicts`, `sessions` and `attempts` are merged by `id` afterwards, so nothing recorded on the device is lost. On an `id` clash the incoming entry wins. `topics` is then recomputed from the merged `markLog` (4.3), so two markings made from different snapshots never overwrite each other.
 4. Otherwise the file is ignored.
 
-When a feedback pack has **no** `progress.json`, the player updates progress itself from `feedback.json`: it adds the score, grade estimate and mistakes, and applies the topic rules above (a full-mark answer adds today's date to `correctDates`, advances `srStage` and sets `nextDue`; a lost mark sets `srStage` to 0 and `nextDue` to tomorrow).
+When a feedback pack has **no** `progress.json`, the player updates progress itself from `feedback.json`: it adds the score, grade estimate, mistakes, `markLog` and `verdicts` entries, then recomputes `topics`.
+
+##### 4.3 Topic mastery and spaced repetition (computed from `markLog`)
+
+For each topic, take every `markLog` entry that lists it and group them by `date`. Go through the days in order; each day counts as **one** practice:
+
+- The day is **correct** when at least one question on the topic got full marks **and** the day's marks on the topic are at least 2/3 of those available.
+- Correct day: add the date to `correctDates` and move `srStage` up one (first correct day → 0, then 1, then 2, capped at 2). Any other day: `srStage` = 0.
+- `lastPracticed` = the last day; `nextDue` = `lastPracticed` + 1, 3 or 7 days for `srStage` 0, 1, 2.
+- `attempts`, `marksAwarded`, `marksAvailable` are totals over all entries.
+- `secure` = `correctDates` has **3 or more** dates → `status: "green"`.
+- Otherwise `status: "red"` if the latest verdict for the topic is `"weak"` and is dated on or after `lastPracticed`, or if marks are under 50% with no correct day; else `"amber"`.
+
+Topics with no `markLog` entries are left as they are.
 
 ---
 

@@ -105,7 +105,10 @@ export function questionLabel(q) {
 let toastTimer;
 export function hideToast(kind) {
   const el = document.getElementById('toast');
-  if (el && (!kind || el.classList.contains(kind))) el.className = 'toast';
+  if (el && (!kind || el.classList.contains(kind))) {
+    clearTimeout(toastTimer);
+    el.className = 'toast';
+  }
 }
 
 export function toast(msg, kind = 'info') {
@@ -117,7 +120,8 @@ export function toast(msg, kind = 'info') {
   el.textContent = msg;
   el.className = `toast show ${kind}`;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => (el.className = `toast ${kind}`), 3200);
+  // 'busy' notices stay until hideToast('busy') is called when the work finishes.
+  if (kind !== 'busy') toastTimer = setTimeout(() => (el.className = `toast ${kind}`), 3200);
 }
 
 export function debounce(fn, ms) {

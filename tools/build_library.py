@@ -80,10 +80,14 @@ def build(src: Path, out: Path, passcode: str, qb_path: Path | None = None) -> d
     keep = set()
     for path in sorted(src.glob("*.zip")):
         data = path.read_bytes()
-        z = zipfile.ZipFile(io.BytesIO(data))
-        m = json.loads(z.read("manifest.json"))
-        qs = json.loads(z.read("questions.json"))
-        errors, warnings = check_pack(data, expect_marks=80 if m["type"] == "paper" else None)
+        try:
+            z = zipfile.ZipFile(io.BytesIO(data))
+            m = json.loads(z.read("manifest.json"))
+            qs = json.loads(z.read("questions.json"))
+            errors, warnings = check_pack(data, expect_marks=80 if m.get("type") == "paper" else None)
+        except Exception as e:  # noqa: BLE001
+            problems.append((path.name, [f"unreadable pack: {e}"]))
+            continue
         if errors:
             problems.append((path.name, errors))
             continue
@@ -112,7 +116,9 @@ def build(src: Path, out: Path, passcode: str, qb_path: Path | None = None) -> d
     qb_path = qb_path or ROOT / "questionbank.json"
     if qb_path.exists():
         qb = qb_path.read_bytes()
-        qb_file = f"questionbank.{hashlib.sha256(qb).hexdigest()[:10]}.bin"
+        # Name from the content without the 'generated' timestamp, so an unchanged bank keeps its name.
+        stable = json.dumps({k: v for k, v in json.loads(qb).items() if k != "generated"}, sort_keys=True).encode()
+        qb_file = f"questionbank.{hashlib.sha256(stable).hexdigest()[:10]}.bin"
         (out / qb_file).write_bytes(encrypt(key, qb))
         keep.add(qb_file)
     for f in out.glob("*.bin"):

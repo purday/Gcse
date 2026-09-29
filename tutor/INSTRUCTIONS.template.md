@@ -46,7 +46,7 @@ Every results zip contains a `reference/` folder written by the player. **Prefer
 | `reference/topics.json` | The 97 spec topic codes (N1–S6), names, spec wording, grade band (4-5, 6, 7, 8-9) |
 | `reference/exam.json` | Exam dates and grade boundaries (last four series) |
 
-The same files are in the Project knowledge as a fallback. `T.load_results(path)` puts them in `R["reference"]`.
+The same files are in the Project knowledge as a fallback. `T.load_results(path)` puts them in `R["reference"]` (it unwraps the base64-wrapped question bank for you; `T.load_questionbank(path)` does the same for the knowledge copy).
 
 ## 4. Marking a results zip (the main loop)
 
@@ -112,7 +112,7 @@ Follow FORMAT.md 1.5 exactly: one entry in `questions` per question in the pack,
 prog2 = T.apply_marking(prog, fb, m, res)   # scores, grade estimates, mistakes, topics (mastery + spaced repetition), real papers
 ```
 
-`apply_marking` implements the rules exactly (FORMAT.md 4.1): a topic is **secure (green) only after fully correct answers on 3 different dates**; spaced repetition reviews are due **1, 3 and 7 days** after practice; a wrong answer resets the topic to a 1-day review. Also:
+`apply_marking` adds a `markLog` entry per question and a `verdicts` entry per topic, then recomputes every topic with the rule in FORMAT.md 4.3: one practice per topic per day; a topic is **secure (green) only after correct answers on 3 different days**; spaced-repetition reviews are due **1, 3 and 7 days** after correct practice; a day that is not correct resets it to a 1-day review; a `"weak"` verdict makes it red. Never edit `topics` by hand except `note`. Also:
 
 - When he gets a topic fully right that has open mistakes, call `T.resolve_mistakes(prog2, code)`.
 - Keep `sessions` and `attempts` exactly as they came (the player owns them).

@@ -54,7 +54,9 @@ function extractMath(src) {
       if (close > -1) {
         let end = close + (display ? 2 : 1);
         // Keep punctuation straight after inline maths on the same line as it.
-        const punct = !display && /[,.;:!?)]/.test(src[end] || '') ? src[end] : '';
+        const body = src.slice(i + 1, close);
+        // Short inline maths keeps a following comma/full stop on its line; long maths must stay breakable.
+        const punct = !display && body.length <= 24 && /[,.;:!?)]/.test(src[end] || '') ? src[end] : '';
         math.push({ tex: src.slice(i + (display ? 2 : 1), close), display, punct });
         if (punct) end++;
         text += `@@M${math.length - 1}@@`;

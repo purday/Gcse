@@ -249,7 +249,8 @@ results.json           his answers
 photos/                JPEG photos of working, about 1200 px on the long edge
 progress.json          his full current progress (section 4)
 reference/             copies of the player's reference data, so the tutor always has current files:
-  questionbank.json    the real question bank (section 3), when the library is installed
+  questionbank.json    the real question bank (section 3), when the library is installed,
+                       wrapped like markscheme.json: { "encoding": "base64", "data": "..." }
   topicmap.json        topic frequency, typical marks, common mistakes
   topics.json          spec topic codes and names
   exam.json            exam dates and grade boundaries
@@ -375,6 +376,12 @@ One JSON object holds his whole study history. The player keeps it in IndexedDB,
   "bankQuestionsUsed": [
     { "id": "aqa-2019-11-2h:q12.1", "packId": "L-2026-10-03-quadratics", "date": "2026-10-03" }
   ],
+  "markLog": [
+    { "id": "L-2026-10-03-quadratics#1:q1", "date": "2026-10-03", "packId": "L-2026-10-03-quadratics", "questionId": "q1", "topics": ["A18"], "awarded": 1, "max": 2 }
+  ],
+  "verdicts": [
+    { "id": "L-2026-10-03-quadratics#1:A18", "date": "2026-10-03", "topic": "A18", "verdict": "developing" }
+  ],
   "plan": { "phase": "secure-6", "note": "Full real paper due 2026-10-06" },
   "sessions": [
     { "id": "s-1759512345678", "date": "2026-10-03", "packId": "L-2026-10-03-quadratics", "attemptId": "a-1759512345678", "secs": 3190 }
@@ -392,7 +399,9 @@ One JSON object holds his whole study history. The player keeps it in IndexedDB,
 |---|---|---|
 | `updatedAt` | both | **must** change on every edit. It is the version number. |
 | `updatedBy` | both | `"app"` or `"tutor"`. |
-| `topics` | tutor | Keyed by spec code. `status`: `"red"` (weak / knowledge gap), `"amber"` (developing), `"green"` (secure). `secure` becomes `true` only when `correctDates` holds **3 or more different dates** with a fully correct answer on that topic. `srStage` 0, 1, 2 means the next review is 1, 3, 7 days after `lastPracticed`; `nextDue` is that date. A wrong answer resets `srStage` to 0. |
+| `markLog` | both | One entry per marked question, `id` = `<packId>#<attemptNo>:<questionId>`. Append-only; this is what topic mastery is computed from (4.3). |
+| `verdicts` | both | One entry per topic verdict in a feedback, `id` = `<packId>#<attemptNo>:<topic>`. |
+| `topics` | derived | Keyed by spec code, **recomputed from `markLog` and `verdicts`** by both sides with the rule in 4.3; only `note` is written by hand (tutor). `status`: `"red"` (weak), `"amber"` (developing), `"green"` (secure). |
 | `scores` | tutor (player adds from feedback) | One per marked attempt. `id` = `<packId>#<attemptNo>`. |
 | `gradeEstimates` | tutor | One per marking, newest last. |
 | `mistakes` | tutor (player adds from feedback) | One per lost-mark group. Never delete: set `resolved: true`. |
@@ -405,10 +414,23 @@ One JSON object holds his whole study history. The player keeps it in IndexedDB,
 
 1. If `updatedAt` is **newer than the local copy**, the incoming file replaces the local progress.
 2. If it is older than the local copy but newer than the last tutor copy the player accepted, the incoming **tutor-owned** sections (`topics`, `gradeEstimates`, `plan`, `notes`, `student`) still replace the local ones. This covers him studying between sending results and getting feedback.
-3. In both cases the arrays `scores`, `mistakes`, `realPapersUsed`, `bankQuestionsUsed`, `gradeEstimates`, `sessions` and `attempts` are merged by `id` afterwards, so nothing recorded on the device is lost. On an `id` clash the incoming entry wins.
+3. In both cases the arrays `scores`, `mistakes`, `realPapersUsed`, `bankQuestionsUsed`, `gradeEstimates`, `markLog`, `verdicts`, `sessions` and `attempts` are merged by `id` afterwards, so nothing recorded on the device is lost. On an `id` clash the incoming entry wins. `topics` is then recomputed from the merged `markLog` (4.3), so two markings made from different snapshots never overwrite each other.
 4. Otherwise the file is ignored.
 
-When a feedback pack has **no** `progress.json`, the player updates progress itself from `feedback.json`: it adds the score, grade estimate and mistakes, and applies the topic rules above (a full-mark answer adds today's date to `correctDates`, advances `srStage` and sets `nextDue`; a lost mark sets `srStage` to 0 and `nextDue` to tomorrow).
+When a feedback pack has **no** `progress.json`, the player updates progress itself from `feedback.json`: it adds the score, grade estimate, mistakes, `markLog` and `verdicts` entries, then recomputes `topics`.
+
+### 4.3 Topic mastery and spaced repetition (computed from `markLog`)
+
+For each topic, take every `markLog` entry that lists it and group them by `date`. Go through the days in order; each day counts as **one** practice:
+
+- The day is **correct** when at least one question on the topic got full marks **and** the day's marks on the topic are at least 2/3 of those available.
+- Correct day: add the date to `correctDates` and move `srStage` up one (first correct day → 0, then 1, then 2, capped at 2). Any other day: `srStage` = 0.
+- `lastPracticed` = the last day; `nextDue` = `lastPracticed` + 1, 3 or 7 days for `srStage` 0, 1, 2.
+- `attempts`, `marksAwarded`, `marksAvailable` are totals over all entries.
+- `secure` = `correctDates` has **3 or more** dates → `status: "green"`.
+- Otherwise `status: "red"` if the latest verdict for the topic is `"weak"` and is dated on or after `lastPracticed`, or if marks are under 50% with no correct day; else `"amber"`.
+
+Topics with no `markLog` entries are left as they are.
 
 ---
 

@@ -101,7 +101,10 @@ def load_results(path: str, extract_to: str = "/tmp/results") -> dict:
     for ref in ("questionbank.json", "topics.json", "topicmap.json", "exam.json"):
         raw = rd(f"reference/{ref}")
         if raw:
-            out["reference"][ref[:-5]] = json.loads(raw)
+            obj = json.loads(raw)
+            if isinstance(obj, dict) and obj.get("encoding") == "base64":  # the bank is wrapped like mark schemes
+                obj = json.loads(base64.b64decode(obj["data"]).decode("utf-8"))
+            out["reference"][ref[:-5]] = obj
     os.makedirs(extract_to, exist_ok=True)
     for a in out["results"]["answers"]:
         files = []
@@ -143,7 +146,14 @@ def build_pack(manifest: dict, questions: list | None = None, markscheme: dict |
 
 
 def check_pack(data: bytes, topic_codes: set | None = None) -> tuple[list, list]:
-    """Mirror of the player's import checks. Returns (errors, warnings)."""
+    """Mirror of the player's import checks (stricter). Returns (errors, warnings); never raises."""
+    try:
+        return _check_pack(data, topic_codes)
+    except Exception as e:  # noqa: BLE001
+        return [f"pack could not be checked: {type(e).__name__}: {e}"], []
+
+
+def _check_pack(data: bytes, topic_codes: set | None = None) -> tuple[list, list]:
     errors, warnings = [], []
     z = zipfile.ZipFile(io.BytesIO(data))
     names = set(z.namelist())
@@ -192,13 +202,17 @@ def check_pack(data: bytes, topic_codes: set | None = None) -> tuple[list, list]
         if "markscheme.json" not in names:
             errors.append("markscheme.json missing")
         else:
-            ms = unwrap_markscheme(z.read("markscheme.json"))
-            for q in qs:
-                e = ms.get("questions", {}).get(q["id"])
+            try:
+                ms = unwrap_markscheme(z.read("markscheme.json"))
+            except Exception:  # noqa: BLE001
+                ms = None
+                errors.append('markscheme.json must be {"encoding": "base64", "data": <base64 of the JSON>}')
+            for q in (qs if ms else []):
+                e = ms.get("questions", {}).get(q.get("id"))
                 if not e:
-                    errors.append(f"markscheme has no entry for {q['id']}")
+                    errors.append(f"markscheme has no entry for {q.get('id')}")
                 elif e.get("maxMarks") != q.get("marks"):
-                    errors.append(f"markscheme {q['id']} maxMarks != marks")
+                    errors.append(f"markscheme {q.get('id')} maxMarks != marks")
     if m.get("type") == "feedback":
         if "feedback.json" not in names:
             errors.append("feedback.json missing")
@@ -229,7 +243,7 @@ def check_pack(data: bytes, topic_codes: set | None = None) -> tuple[list, list]
                 for n in names:
                     if n.startswith("next/") and not n.endswith("/"):
                         s.writestr(n[5:], z.read(n))
-            e2, w2 = check_pack(sub.getvalue(), topic_codes)
+            e2, w2 = _check_pack(sub.getvalue(), topic_codes)
             errors += [f"next/: {e}" for e in e2]
             warnings += [f"next/: {w}" for w in w2]
     return errors, warnings
@@ -284,25 +298,50 @@ def _upsert(lst: list, item: dict):
     lst.append(item)
 
 
-def update_topic(progress: dict, code: str, full: bool, day: str, awarded: int, available: int) -> dict:
-    """Spaced repetition + mastery rules from FORMAT.md 4.1."""
-    t = progress.setdefault("topics", {}).setdefault(code, {})
-    t["attempts"] = t.get("attempts", 0) + 1
-    t["marksAwarded"] = t.get("marksAwarded", 0) + awarded
-    t["marksAvailable"] = t.get("marksAvailable", 0) + available
-    t.setdefault("correctDates", [])
-    t["lastPracticed"] = day
-    if full:
-        if day not in t["correctDates"]:
-            t["correctDates"].append(day)
-        t["srStage"] = min(t.get("srStage", -1) + 1, len(SR_DAYS) - 1)
-    else:
-        t["srStage"] = 0
-    t["nextDue"] = add_days(day, SR_DAYS[t["srStage"]])
-    t["secure"] = len(t["correctDates"]) >= 3
-    rate = t["marksAwarded"] / t["marksAvailable"] if t["marksAvailable"] else 0
-    t["status"] = "green" if t["secure"] else ("amber" if rate >= 0.5 or t["correctDates"] else "red")
-    return t
+def recompute_topics(progress: dict) -> dict:
+    """Derive topic mastery + spaced repetition from markLog and verdicts (FORMAT.md 4.3).
+
+    One practice per topic per day: the day counts as correct when at least one
+    question on the topic got full marks and the day's marks on it are >= 2/3.
+    Correct day -> next review 1, 3, then 7 days later; any other day -> 1 day.
+    Secure (green) = correct on 3 different days. Same rule as the player.
+    """
+    topics = progress.setdefault("topics", {})
+    by_topic: dict = {}
+    for e in progress.get("markLog", []):
+        for code in e.get("topics", []):
+            by_topic.setdefault(code, {}).setdefault(e["date"], []).append(e)
+    latest: dict = {}
+    for v in progress.get("verdicts", []):
+        cur = latest.get(v["topic"])
+        if not cur or (v["date"], v["id"]) > (cur["date"], cur["id"]):
+            latest[v["topic"]] = v
+    for code, days in by_topic.items():
+        t = {"note": (topics.get(code) or {}).get("note", ""), "attempts": 0, "marksAwarded": 0, "marksAvailable": 0, "correctDates": []}
+        stage = -1
+        for day in sorted(days):
+            es = days[day]
+            got = sum(e.get("awarded", 0) for e in es)
+            mx = sum(e.get("max", 0) for e in es)
+            correct = any(e.get("max", 0) > 0 and e.get("awarded", 0) >= e["max"] for e in es) and got * 3 >= mx * 2
+            t["attempts"] += len(es)
+            t["marksAwarded"] += got
+            t["marksAvailable"] += mx
+            if correct:
+                t["correctDates"].append(day)
+                stage = min(stage + 1, len(SR_DAYS) - 1)
+            else:
+                stage = 0
+            t["lastPracticed"] = day
+        t["srStage"] = max(stage, 0)
+        t["nextDue"] = add_days(t["lastPracticed"], SR_DAYS[t["srStage"]])
+        t["secure"] = len(t["correctDates"]) >= 3
+        rate = t["marksAwarded"] / t["marksAvailable"] if t["marksAvailable"] else 0
+        v = latest.get(code)
+        weak = bool(v and v.get("verdict") == "weak" and v["date"] >= t["lastPracticed"])
+        t["status"] = "green" if t["secure"] else ("red" if weak or (rate < 0.5 and not t["correctDates"]) else "amber")
+        topics[code] = t
+    return progress
 
 
 def grade_for_total(total240: float, exam: dict) -> dict:
@@ -328,7 +367,7 @@ def paper_grade(score80: int, exam: dict) -> dict:
 def apply_marking(progress: dict, fb: dict, manifest: dict, results: dict | None = None) -> dict:
     """Update progress.json from your feedback.json. Returns the updated copy (updatedBy tutor)."""
     p = json.loads(json.dumps(progress or {}))
-    for k in ("scores", "gradeEstimates", "mistakes", "realPapersUsed", "sessions", "attempts", "bankQuestionsUsed"):
+    for k in ("scores", "gradeEstimates", "mistakes", "realPapersUsed", "sessions", "attempts", "bankQuestionsUsed", "markLog", "verdicts"):
         p.setdefault(k, [])
     p.setdefault("topics", {})
     p.setdefault("schemaVersion", 1)
@@ -346,15 +385,22 @@ def apply_marking(progress: dict, fb: dict, manifest: dict, results: dict | None
             _upsert(p["mistakes"], {"id": f"m-{fb['forPackId']}-{q['questionId']}-{i}", "date": day, "packId": fb["forPackId"],
                                     "questionId": q["questionId"], "topic": (q.get("topics") or [None])[0], "type": l["type"],
                                     "note": l["reason"], "resolved": False, "reviewedDates": []})
-        full = q["maxMarks"] > 0 and q["marksAwarded"] >= q["maxMarks"]
-        for code in q.get("topics", []):
-            update_topic(p, code, full, day, q["marksAwarded"], q["maxMarks"])
+        _upsert(p["markLog"], {"id": f"{fb['forPackId']}#{attempt_no}:{q['questionId']}", "date": day, "packId": fb["forPackId"],
+                               "questionId": q["questionId"], "topics": q.get("topics", []), "awarded": q["marksAwarded"], "max": q["maxMarks"]})
     for t in fb.get("topics", []):
-        if t["topic"] in p["topics"] and t.get("note"):
-            p["topics"][t["topic"]]["note"] = t["note"]
+        _upsert(p["verdicts"], {"id": f"{fb['forPackId']}#{attempt_no}:{t['topic']}", "date": day, "topic": t["topic"], "verdict": t.get("verdict")})
+        if t.get("note"):
+            p["topics"].setdefault(t["topic"], {})["note"] = t["note"]
+    recompute_topics(p)
     p["updatedAt"] = now_iso()
     p["updatedBy"] = "tutor"
     return p
+
+
+def load_questionbank(path: str) -> dict:
+    """Read questionbank.json (plain or base64-wrapped) from the Project knowledge or a file."""
+    obj = json.load(open(path, encoding="utf-8"))
+    return json.loads(base64.b64decode(obj["data"]).decode("utf-8")) if obj.get("encoding") == "base64" else obj
 
 
 def resolve_mistakes(progress: dict, topic: str, day: str | None = None):
