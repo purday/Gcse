@@ -1,0 +1,1334 @@
+{
+ "spec": "AQA GCSE Mathematics (8300)",
+ "note": "band = where Higher-tier questions on this topic usually sit (4-5, 6, 7, 8-9). Rough guide for ordering study, not an AQA classification.",
+ "strands": {
+  "N": "Number",
+  "A": "Algebra",
+  "R": "Ratio, proportion and rates of change",
+  "G": "Geometry and measures",
+  "P": "Probability",
+  "S": "Statistics"
+ },
+ "topics": [
+  {
+   "code": "N1",
+   "strand": "Number",
+   "name": "Ordering numbers and inequality symbols",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "order",
+    "ascending",
+    "descending"
+   ],
+   "spec": "Order positive and negative integers, decimals and fractions; use the symbols =, ≠, <, >, ≤, ≥."
+  },
+  {
+   "code": "N2",
+   "strand": "Number",
+   "name": "Four operations incl. fractions and negatives",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "mixed number",
+    "work out",
+    "improper"
+   ],
+   "spec": "Apply the four operations, including formal written methods, to integers, decimals and simple fractions (proper and improper), and mixed numbers, all both positive and negative; understand and use place value."
+  },
+  {
+   "code": "N3",
+   "strand": "Number",
+   "name": "Inverse operations and order of operations",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "reciprocal",
+    "brackets"
+   ],
+   "spec": "Recognise and use relationships between operations, including inverse operations; use conventional notation for priority of operations, including brackets, powers, roots and reciprocals."
+  },
+  {
+   "code": "N4",
+   "strand": "Number",
+   "name": "Primes, factors, HCF, LCM, prime factorisation",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "prime factor",
+    "highest common factor",
+    "lowest common multiple",
+    "hcf",
+    "lcm",
+    "product of prime",
+    "factor",
+    "multiple"
+   ],
+   "spec": "Use the concepts and vocabulary of prime numbers, factors, multiples, common factors, common multiples, HCF, LCM, prime factorisation, including using product notation and the unique factorisation theorem."
+  },
+  {
+   "code": "N5",
+   "strand": "Number",
+   "name": "Systematic listing and product rule for counting",
+   "band": "7",
+   "higherOnly": true,
+   "keywords": [
+    "combinations",
+    "how many different",
+    "arrangements",
+    "codes",
+    "list all"
+   ],
+   "spec": "Apply systematic listing strategies, including use of the product rule for counting."
+  },
+  {
+   "code": "N6",
+   "strand": "Number",
+   "name": "Powers and roots, estimating them",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "square root",
+    "cube root",
+    "power of"
+   ],
+   "spec": "Use positive integer powers and associated real roots (square, cube and higher), recognise powers of 2, 3, 4, 5; estimate powers and roots of any given positive number."
+  },
+  {
+   "code": "N7",
+   "strand": "Number",
+   "name": "Negative and fractional indices",
+   "band": "6",
+   "higherOnly": true,
+   "keywords": [
+    "index",
+    "indices",
+    "power of -",
+    "^{-",
+    "^{\\frac"
+   ],
+   "spec": "Calculate with roots, and with integer and fractional indices."
+  },
+  {
+   "code": "N8",
+   "strand": "Number",
+   "name": "Exact calculation: surds, π, rationalising",
+   "band": "7",
+   "higherOnly": true,
+   "keywords": [
+    "surd",
+    "rationalise",
+    "simplest form",
+    "\\sqrt",
+    "exact",
+    "in terms of π",
+    "in terms of pi"
+   ],
+   "spec": "Calculate exactly with fractions, surds and multiples of π; simplify surd expressions involving squares and rationalise denominators."
+  },
+  {
+   "code": "N9",
+   "strand": "Number",
+   "name": "Standard form",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "standard form",
+    "× 10",
+    "x 10^"
+   ],
+   "spec": "Calculate with and interpret standard form A × 10^n, where 1 ≤ A < 10 and n is an integer."
+  },
+  {
+   "code": "N10",
+   "strand": "Number",
+   "name": "Recurring decimals and fractions",
+   "band": "7",
+   "higherOnly": true,
+   "keywords": [
+    "recurring",
+    "terminating"
+   ],
+   "spec": "Work interchangeably with terminating decimals and their corresponding fractions; change recurring decimals into their corresponding fractions and vice versa."
+  },
+  {
+   "code": "N11",
+   "strand": "Number",
+   "name": "Fractions in ratio problems",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "fraction of"
+   ],
+   "spec": "Identify and work with fractions in ratio problems."
+  },
+  {
+   "code": "N12",
+   "strand": "Number",
+   "name": "Fractions and percentages as operators",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "% of",
+    "fraction of"
+   ],
+   "spec": "Interpret fractions and percentages as operators."
+  },
+  {
+   "code": "N13",
+   "strand": "Number",
+   "name": "Standard units and measures",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "units",
+    "convert"
+   ],
+   "spec": "Use standard units of mass, length, time, money and other measures (including standard compound measures) using decimal quantities where appropriate."
+  },
+  {
+   "code": "N14",
+   "strand": "Number",
+   "name": "Estimation and checking",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "estimate",
+    "approximate",
+    "overestimate",
+    "underestimate"
+   ],
+   "spec": "Estimate answers; check calculations using approximation and estimation, including answers obtained using technology."
+  },
+  {
+   "code": "N15",
+   "strand": "Number",
+   "name": "Rounding and error intervals",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "error interval",
+    "rounded to",
+    "truncated",
+    "significant figure",
+    "decimal place"
+   ],
+   "spec": "Round numbers and measures to an appropriate degree of accuracy; use inequality notation to specify simple error intervals due to truncation or rounding."
+  },
+  {
+   "code": "N16",
+   "strand": "Number",
+   "name": "Upper and lower bounds",
+   "band": "7",
+   "higherOnly": true,
+   "keywords": [
+    "upper bound",
+    "lower bound",
+    "bounds",
+    "limits of accuracy"
+   ],
+   "spec": "Apply and interpret limits of accuracy, including upper and lower bounds."
+  },
+  {
+   "code": "A1",
+   "strand": "Algebra",
+   "name": "Algebraic notation",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [],
+   "spec": "Use and interpret algebraic notation."
+  },
+  {
+   "code": "A2",
+   "strand": "Algebra",
+   "name": "Substitution into formulae",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "substitute",
+    "when x ="
+   ],
+   "spec": "Substitute numerical values into formulae and expressions, including scientific formulae."
+  },
+  {
+   "code": "A3",
+   "strand": "Algebra",
+   "name": "Expressions, equations, formulae, identities",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "identity",
+    "expression",
+    "formula",
+    "equation"
+   ],
+   "spec": "Understand and use the concepts and vocabulary of expressions, equations, formulae, identities, inequalities, terms and factors."
+  },
+  {
+   "code": "A4",
+   "strand": "Algebra",
+   "name": "Expanding, factorising, algebraic fractions, index laws",
+   "band": "6",
+   "higherOnly": false,
+   "keywords": [
+    "expand",
+    "factorise",
+    "simplify",
+    "algebraic fraction",
+    "fully"
+   ],
+   "spec": "Simplify and manipulate algebraic expressions (including those involving surds and algebraic fractions): collect like terms, expand products of two or more binomials, factorise quadratics including ax² + bx + c and difference of two squares, simplify using the laws of indices."
+  },
+  {
+   "code": "A5",
+   "strand": "Algebra",
+   "name": "Rearranging formulae (change the subject)",
+   "band": "6",
+   "higherOnly": false,
+   "keywords": [
+    "make",
+    "the subject",
+    "rearrange"
+   ],
+   "spec": "Understand and use standard mathematical formulae; rearrange formulae to change the subject."
+  },
+  {
+   "code": "A6",
+   "strand": "Algebra",
+   "name": "Algebraic proof and identities",
+   "band": "7",
+   "higherOnly": false,
+   "keywords": [
+    "prove",
+    "show that",
+    "identity",
+    "≡",
+    "odd",
+    "even",
+    "consecutive"
+   ],
+   "spec": "Know the difference between an equation and an identity; argue mathematically to show algebraic expressions are equivalent, and use algebra to support and construct arguments and proofs."
+  },
+  {
+   "code": "A7",
+   "strand": "Algebra",
+   "name": "Functions: inverse and composite",
+   "band": "7",
+   "higherOnly": true,
+   "keywords": [
+    "f(x)",
+    "g(x)",
+    "fg(",
+    "gf(",
+    "inverse",
+    "f^{-1}",
+    "composite"
+   ],
+   "spec": "Interpret simple expressions as functions with inputs and outputs; interpret the reverse process as the inverse function; interpret the succession of two functions as a composite function."
+  },
+  {
+   "code": "A8",
+   "strand": "Algebra",
+   "name": "Coordinates in four quadrants",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "coordinates",
+    "midpoint"
+   ],
+   "spec": "Work with coordinates in all four quadrants."
+  },
+  {
+   "code": "A9",
+   "strand": "Algebra",
+   "name": "Straight-line graphs, parallel and perpendicular",
+   "band": "6",
+   "higherOnly": false,
+   "keywords": [
+    "y = mx",
+    "gradient",
+    "straight line",
+    "perpendicular",
+    "parallel",
+    "equation of the line"
+   ],
+   "spec": "Plot straight-line graphs; use y = mx + c to identify parallel and perpendicular lines; find the equation of the line through two given points, or through one point with a given gradient."
+  },
+  {
+   "code": "A10",
+   "strand": "Algebra",
+   "name": "Gradients and intercepts",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "gradient",
+    "intercept"
+   ],
+   "spec": "Identify and interpret gradients and intercepts of linear functions graphically and algebraically."
+  },
+  {
+   "code": "A11",
+   "strand": "Algebra",
+   "name": "Quadratic graphs: roots, turning points, completing the square",
+   "band": "7",
+   "higherOnly": false,
+   "keywords": [
+    "turning point",
+    "completing the square",
+    "minimum point",
+    "maximum point",
+    "roots"
+   ],
+   "spec": "Identify and interpret roots, intercepts, turning points of quadratic functions graphically; deduce roots algebraically and turning points by completing the square."
+  },
+  {
+   "code": "A12",
+   "strand": "Algebra",
+   "name": "Recognising and sketching graphs (cubic, reciprocal, exponential, trig)",
+   "band": "6",
+   "higherOnly": false,
+   "keywords": [
+    "sketch",
+    "cubic",
+    "reciprocal",
+    "exponential",
+    "y = sin",
+    "y = cos",
+    "y = tan",
+    "sin x",
+    "cos x"
+   ],
+   "spec": "Recognise, sketch and interpret graphs of linear, quadratic, simple cubic, reciprocal y = 1/x, exponential y = k^x, and trigonometric functions for angles of any size."
+  },
+  {
+   "code": "A13",
+   "strand": "Algebra",
+   "name": "Transformations of graphs",
+   "band": "8-9",
+   "higherOnly": true,
+   "keywords": [
+    "f(x + ",
+    "f(x - ",
+    "-f(x)",
+    "f(-x)",
+    "translation of the graph",
+    "transformation"
+   ],
+   "spec": "Sketch translations and reflections of a given function."
+  },
+  {
+   "code": "A14",
+   "strand": "Algebra",
+   "name": "Real-life and non-standard graphs",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "graph shows",
+    "distance-time",
+    "conversion graph"
+   ],
+   "spec": "Plot and interpret graphs (including reciprocal and exponential graphs) and graphs of non-standard functions in real contexts, including simple kinematic problems."
+  },
+  {
+   "code": "A15",
+   "strand": "Algebra",
+   "name": "Gradients of curves and areas under graphs",
+   "band": "8-9",
+   "higherOnly": true,
+   "keywords": [
+    "area under",
+    "velocity-time",
+    "speed-time",
+    "tangent to the curve",
+    "rate of change",
+    "acceleration"
+   ],
+   "spec": "Calculate or estimate gradients of graphs and areas under graphs (including non-linear graphs), and interpret results in contexts such as distance-time, velocity-time and financial graphs."
+  },
+  {
+   "code": "A16",
+   "strand": "Algebra",
+   "name": "Equation of a circle and tangent",
+   "band": "8-9",
+   "higherOnly": true,
+   "keywords": [
+    "x^2 + y^2",
+    "x² + y²",
+    "circle",
+    "tangent"
+   ],
+   "spec": "Recognise and use the equation of a circle with centre at the origin; find the equation of a tangent to a circle at a given point."
+  },
+  {
+   "code": "A17",
+   "strand": "Algebra",
+   "name": "Linear equations",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "solve"
+   ],
+   "spec": "Solve linear equations in one unknown algebraically (including unknowns on both sides); find approximate solutions using a graph."
+  },
+  {
+   "code": "A18",
+   "strand": "Algebra",
+   "name": "Quadratic equations (factorise, formula, completing the square)",
+   "band": "6",
+   "higherOnly": false,
+   "keywords": [
+    "quadratic",
+    "solve",
+    "x^2",
+    "x²",
+    "quadratic formula",
+    "decimal places"
+   ],
+   "spec": "Solve quadratic equations (including those that require rearrangement) algebraically by factorising, by completing the square and by using the quadratic formula; find approximate solutions using a graph."
+  },
+  {
+   "code": "A19",
+   "strand": "Algebra",
+   "name": "Simultaneous equations (linear and linear/quadratic)",
+   "band": "6",
+   "higherOnly": false,
+   "keywords": [
+    "simultaneous",
+    "solve the simultaneous"
+   ],
+   "spec": "Solve two simultaneous equations in two variables (linear/linear or linear/quadratic) algebraically; find approximate solutions using a graph."
+  },
+  {
+   "code": "A20",
+   "strand": "Algebra",
+   "name": "Iteration",
+   "band": "7",
+   "higherOnly": true,
+   "keywords": [
+    "iteration",
+    "x_{n+1}",
+    "x_n",
+    "iterative",
+    "starting with"
+   ],
+   "spec": "Find approximate solutions to equations numerically using iteration."
+  },
+  {
+   "code": "A21",
+   "strand": "Algebra",
+   "name": "Forming and solving equations from context",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "form an equation",
+    "set up"
+   ],
+   "spec": "Translate simple situations or procedures into algebraic expressions or formulae; derive an equation (or two simultaneous equations), solve and interpret the solution."
+  },
+  {
+   "code": "A22",
+   "strand": "Algebra",
+   "name": "Inequalities (linear, quadratic, regions)",
+   "band": "6",
+   "higherOnly": false,
+   "keywords": [
+    "inequality",
+    "inequalities",
+    "region",
+    "integer values",
+    "≤",
+    "<"
+   ],
+   "spec": "Solve linear inequalities in one or two variables, and quadratic inequalities in one variable; represent the solution set on a number line, using set notation and on a graph."
+  },
+  {
+   "code": "A23",
+   "strand": "Algebra",
+   "name": "Generating sequences",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "sequence",
+    "term"
+   ],
+   "spec": "Generate terms of a sequence from either a term-to-term or a position-to-term rule."
+  },
+  {
+   "code": "A24",
+   "strand": "Algebra",
+   "name": "Special sequences (geometric, quadratic, Fibonacci)",
+   "band": "6",
+   "higherOnly": false,
+   "keywords": [
+    "geometric",
+    "fibonacci",
+    "common ratio",
+    "sequence"
+   ],
+   "spec": "Recognise and use sequences of triangular, square and cube numbers, arithmetic progressions, Fibonacci-type sequences, quadratic sequences, and simple geometric progressions."
+  },
+  {
+   "code": "A25",
+   "strand": "Algebra",
+   "name": "nth term (linear and quadratic)",
+   "band": "7",
+   "higherOnly": false,
+   "keywords": [
+    "nth term",
+    "n th term",
+    "n^2"
+   ],
+   "spec": "Deduce expressions to calculate the nth term of linear and quadratic sequences."
+  },
+  {
+   "code": "R1",
+   "strand": "Ratio, proportion and rates of change",
+   "name": "Converting units incl. area/volume and compound units",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "convert",
+    "cm^2",
+    "cm²",
+    "m^3",
+    "litres"
+   ],
+   "spec": "Change freely between related standard units and compound units in numerical and algebraic contexts."
+  },
+  {
+   "code": "R2",
+   "strand": "Ratio, proportion and rates of change",
+   "name": "Scale factors, scale diagrams and maps",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "scale",
+    "map",
+    "1 :"
+   ],
+   "spec": "Use scale factors, scale diagrams and maps."
+  },
+  {
+   "code": "R3",
+   "strand": "Ratio, proportion and rates of change",
+   "name": "One quantity as a fraction of another",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "as a fraction of"
+   ],
+   "spec": "Express one quantity as a fraction of another."
+  },
+  {
+   "code": "R4",
+   "strand": "Ratio, proportion and rates of change",
+   "name": "Ratio notation and simplifying",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "ratio",
+    "simplest form"
+   ],
+   "spec": "Use ratio notation, including reduction to simplest form."
+  },
+  {
+   "code": "R5",
+   "strand": "Ratio, proportion and rates of change",
+   "name": "Sharing in a ratio and ratio problems",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "ratio",
+    "shared",
+    "share"
+   ],
+   "spec": "Divide a quantity in a given part:part or part:whole ratio; express a division as a ratio; apply ratio to real contexts and problems."
+  },
+  {
+   "code": "R6",
+   "strand": "Ratio, proportion and rates of change",
+   "name": "Multiplicative relationships as ratios",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "times as many",
+    "ratio"
+   ],
+   "spec": "Express a multiplicative relationship between two quantities as a ratio or a fraction."
+  },
+  {
+   "code": "R7",
+   "strand": "Ratio, proportion and rates of change",
+   "name": "Proportion as equality of ratios",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "proportion"
+   ],
+   "spec": "Understand and use proportion as equality of ratios."
+  },
+  {
+   "code": "R8",
+   "strand": "Ratio, proportion and rates of change",
+   "name": "Ratios, fractions and linear functions",
+   "band": "6",
+   "higherOnly": false,
+   "keywords": [
+    "ratio"
+   ],
+   "spec": "Relate ratios to fractions and to linear functions."
+  },
+  {
+   "code": "R9",
+   "strand": "Ratio, proportion and rates of change",
+   "name": "Percentages incl. reverse percentages",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "percentage",
+    "%",
+    "original",
+    "increase",
+    "decrease",
+    "interest"
+   ],
+   "spec": "Percentages and percentage change, including increase/decrease, original value problems and simple interest in financial mathematics."
+  },
+  {
+   "code": "R10",
+   "strand": "Ratio, proportion and rates of change",
+   "name": "Direct and inverse proportion problems",
+   "band": "6",
+   "higherOnly": false,
+   "keywords": [
+    "proportional",
+    "proportion",
+    "inversely",
+    "directly"
+   ],
+   "spec": "Solve problems involving direct and inverse proportion, including graphical and algebraic representations."
+  },
+  {
+   "code": "R11",
+   "strand": "Ratio, proportion and rates of change",
+   "name": "Compound units: speed, density, pressure",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "speed",
+    "density",
+    "pressure",
+    "km/h",
+    "g/cm",
+    "rate"
+   ],
+   "spec": "Use compound units such as speed, rates of pay, unit pricing, density and pressure."
+  },
+  {
+   "code": "R12",
+   "strand": "Ratio, proportion and rates of change",
+   "name": "Comparing lengths, areas, volumes; similarity links",
+   "band": "7",
+   "higherOnly": false,
+   "keywords": [
+    "similar",
+    "scale factor"
+   ],
+   "spec": "Compare lengths, areas and volumes using ratio notation; make links to similarity (including trigonometric ratios) and scale factors."
+  },
+  {
+   "code": "R13",
+   "strand": "Ratio, proportion and rates of change",
+   "name": "Proportion equations (y = kx, y = k/x²)",
+   "band": "7",
+   "higherOnly": false,
+   "keywords": [
+    "proportional to",
+    "inversely proportional",
+    "directly proportional"
+   ],
+   "spec": "Understand that X is inversely proportional to Y is equivalent to X is proportional to 1/Y; construct and interpret equations that describe direct and inverse proportion."
+  },
+  {
+   "code": "R14",
+   "strand": "Ratio, proportion and rates of change",
+   "name": "Gradient as rate of change; proportion graphs",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "rate of change",
+    "gradient"
+   ],
+   "spec": "Interpret the gradient of a straight-line graph as a rate of change; recognise and interpret graphs that illustrate direct and inverse proportion."
+  },
+  {
+   "code": "R15",
+   "strand": "Ratio, proportion and rates of change",
+   "name": "Instantaneous and average rate of change",
+   "band": "8-9",
+   "higherOnly": true,
+   "keywords": [
+    "tangent",
+    "instantaneous",
+    "average rate",
+    "rate of change"
+   ],
+   "spec": "Interpret the gradient at a point on a curve as the instantaneous rate of change; apply average and instantaneous rate of change in numerical, algebraic and graphical contexts."
+  },
+  {
+   "code": "R16",
+   "strand": "Ratio, proportion and rates of change",
+   "name": "Growth, decay, compound interest",
+   "band": "6",
+   "higherOnly": false,
+   "keywords": [
+    "compound interest",
+    "depreciat",
+    "decay",
+    "growth",
+    "per annum",
+    "each year"
+   ],
+   "spec": "Set up, solve and interpret growth and decay problems, including compound interest, and work with general iterative processes."
+  },
+  {
+   "code": "G1",
+   "strand": "Geometry and measures",
+   "name": "Geometric notation and conventions",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [],
+   "spec": "Use conventional terms and notations for points, lines, polygons and symmetry; label sides and angles of triangles; draw diagrams from written descriptions."
+  },
+  {
+   "code": "G2",
+   "strand": "Geometry and measures",
+   "name": "Constructions and loci",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "construct",
+    "compasses",
+    "locus",
+    "loci",
+    "bisector",
+    "ruler"
+   ],
+   "spec": "Use the standard ruler and compass constructions; construct figures and solve loci problems."
+  },
+  {
+   "code": "G3",
+   "strand": "Geometry and measures",
+   "name": "Angle facts, parallel lines, polygons",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "angle",
+    "parallel",
+    "interior",
+    "exterior",
+    "polygon"
+   ],
+   "spec": "Angles at a point, on a straight line, vertically opposite, alternate and corresponding angles; angle sums in triangles and polygons; properties of regular polygons."
+  },
+  {
+   "code": "G4",
+   "strand": "Geometry and measures",
+   "name": "Properties of quadrilaterals and triangles",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "parallelogram",
+    "rhombus",
+    "kite",
+    "trapezium",
+    "isosceles"
+   ],
+   "spec": "Derive and apply properties of special quadrilaterals and triangles."
+  },
+  {
+   "code": "G5",
+   "strand": "Geometry and measures",
+   "name": "Congruence criteria (SSS, SAS, ASA, RHS)",
+   "band": "7",
+   "higherOnly": false,
+   "keywords": [
+    "congruent"
+   ],
+   "spec": "Use the basic congruence criteria for triangles (SSS, SAS, ASA, RHS)."
+  },
+  {
+   "code": "G6",
+   "strand": "Geometry and measures",
+   "name": "Geometric reasoning and proof",
+   "band": "7",
+   "higherOnly": false,
+   "keywords": [
+    "prove",
+    "give reasons",
+    "show that"
+   ],
+   "spec": "Apply angle facts, congruence, similarity and properties of quadrilaterals to derive results, including Pythagoras' theorem, and construct simple proofs."
+  },
+  {
+   "code": "G7",
+   "strand": "Geometry and measures",
+   "name": "Transformations incl. negative and fractional enlargement",
+   "band": "6",
+   "higherOnly": false,
+   "keywords": [
+    "enlargement",
+    "rotation",
+    "reflection",
+    "translation",
+    "scale factor"
+   ],
+   "spec": "Identify, describe and construct congruent and similar shapes by rotation, reflection, translation and enlargement (including fractional and negative scale factors)."
+  },
+  {
+   "code": "G8",
+   "strand": "Geometry and measures",
+   "name": "Combined transformations and invariance",
+   "band": "7",
+   "higherOnly": true,
+   "keywords": [
+    "invariant",
+    "followed by",
+    "single transformation"
+   ],
+   "spec": "Describe the changes and invariance achieved by combinations of rotations, reflections and translations."
+  },
+  {
+   "code": "G9",
+   "strand": "Geometry and measures",
+   "name": "Circle vocabulary",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "chord",
+    "sector",
+    "segment",
+    "arc",
+    "circumference"
+   ],
+   "spec": "Identify and apply circle definitions and properties: centre, radius, chord, diameter, circumference, tangent, arc, sector and segment."
+  },
+  {
+   "code": "G10",
+   "strand": "Geometry and measures",
+   "name": "Circle theorems",
+   "band": "7",
+   "higherOnly": true,
+   "keywords": [
+    "circle theorem",
+    "cyclic",
+    "tangent",
+    "alternate segment",
+    "centre o",
+    "semicircle"
+   ],
+   "spec": "Apply and prove the standard circle theorems concerning angles, radii, tangents and chords."
+  },
+  {
+   "code": "G11",
+   "strand": "Geometry and measures",
+   "name": "Geometry problems on coordinate axes",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "coordinates",
+    "grid"
+   ],
+   "spec": "Solve geometrical problems on coordinate axes."
+  },
+  {
+   "code": "G12",
+   "strand": "Geometry and measures",
+   "name": "Properties of 3D shapes",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "faces",
+    "edges",
+    "vertices"
+   ],
+   "spec": "Identify properties of faces, surfaces, edges and vertices of cubes, cuboids, prisms, cylinders, pyramids, cones and spheres."
+  },
+  {
+   "code": "G13",
+   "strand": "Geometry and measures",
+   "name": "Plans and elevations",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "plan",
+    "elevation"
+   ],
+   "spec": "Construct and interpret plans and elevations of 3D shapes."
+  },
+  {
+   "code": "G14",
+   "strand": "Geometry and measures",
+   "name": "Units of measure",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [],
+   "spec": "Use standard units of measure and related concepts."
+  },
+  {
+   "code": "G15",
+   "strand": "Geometry and measures",
+   "name": "Measuring, scale drawings, bearings",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "bearing",
+    "scale drawing",
+    "measure"
+   ],
+   "spec": "Measure line segments and angles, interpret maps and scale drawings, and use bearings."
+  },
+  {
+   "code": "G16",
+   "strand": "Geometry and measures",
+   "name": "Area and volume of 2D shapes and prisms",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "area",
+    "volume",
+    "prism",
+    "trapezium",
+    "cuboid",
+    "cylinder"
+   ],
+   "spec": "Area of triangles, parallelograms, trapezia; volume of cuboids and other right prisms (including cylinders)."
+  },
+  {
+   "code": "G17",
+   "strand": "Geometry and measures",
+   "name": "Circles, spheres, cones, pyramids: area, surface area, volume",
+   "band": "6",
+   "higherOnly": false,
+   "keywords": [
+    "sphere",
+    "cone",
+    "pyramid",
+    "hemisphere",
+    "surface area",
+    "circle",
+    "frustum"
+   ],
+   "spec": "Perimeter and area of circles and composite shapes; surface area and volume of spheres, pyramids, cones and composite solids."
+  },
+  {
+   "code": "G18",
+   "strand": "Geometry and measures",
+   "name": "Arc length and sector area",
+   "band": "6",
+   "higherOnly": false,
+   "keywords": [
+    "arc",
+    "sector"
+   ],
+   "spec": "Calculate arc lengths, angles and areas of sectors of circles."
+  },
+  {
+   "code": "G19",
+   "strand": "Geometry and measures",
+   "name": "Similarity: lengths, areas and volumes",
+   "band": "8-9",
+   "higherOnly": true,
+   "keywords": [
+    "similar",
+    "mathematically similar"
+   ],
+   "spec": "Apply congruence and similarity, including the relationships between lengths, areas and volumes in similar figures."
+  },
+  {
+   "code": "G20",
+   "strand": "Geometry and measures",
+   "name": "Pythagoras and right-angled trig (incl. 3D)",
+   "band": "6",
+   "higherOnly": false,
+   "keywords": [
+    "pythagoras",
+    "sin",
+    "cos",
+    "tan",
+    "right-angled",
+    "hypotenuse"
+   ],
+   "spec": "Pythagoras' theorem and the trigonometric ratios in right-angled triangles, in two and three dimensions."
+  },
+  {
+   "code": "G21",
+   "strand": "Geometry and measures",
+   "name": "Exact trig values",
+   "band": "6",
+   "higherOnly": false,
+   "keywords": [
+    "exact value",
+    "sin 30",
+    "cos 60",
+    "tan 45"
+   ],
+   "spec": "Know the exact values of sin and cos for 0°, 30°, 45°, 60°, 90° and tan for 0°, 30°, 45°, 60°."
+  },
+  {
+   "code": "G22",
+   "strand": "Geometry and measures",
+   "name": "Sine rule and cosine rule",
+   "band": "7",
+   "higherOnly": true,
+   "keywords": [
+    "sine rule",
+    "cosine rule",
+    "sin",
+    "cos"
+   ],
+   "spec": "Know and apply the sine rule and cosine rule to find unknown lengths and angles."
+  },
+  {
+   "code": "G23",
+   "strand": "Geometry and measures",
+   "name": "Area = ½ab sin C",
+   "band": "7",
+   "higherOnly": true,
+   "keywords": [
+    "1/2 ab sin",
+    "½ab sin",
+    "area of triangle"
+   ],
+   "spec": "Know and apply Area = ½ab sin C."
+  },
+  {
+   "code": "G24",
+   "strand": "Geometry and measures",
+   "name": "Vectors: translations and column vectors",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "vector",
+    "column vector"
+   ],
+   "spec": "Describe translations as 2D vectors."
+  },
+  {
+   "code": "G25",
+   "strand": "Geometry and measures",
+   "name": "Vector arithmetic and vector proof",
+   "band": "8-9",
+   "higherOnly": false,
+   "keywords": [
+    "vector",
+    "\\overrightarrow",
+    "collinear",
+    "straight line",
+    "parallel"
+   ],
+   "spec": "Add and subtract vectors, multiply by a scalar; use vectors to construct geometric arguments and proofs."
+  },
+  {
+   "code": "P1",
+   "strand": "Probability",
+   "name": "Frequency trees and experimental outcomes",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "frequency tree",
+    "experiment"
+   ],
+   "spec": "Record, describe and analyse outcomes of probability experiments using tables and frequency trees."
+  },
+  {
+   "code": "P2",
+   "strand": "Probability",
+   "name": "Expected outcomes",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "expected",
+    "how many times",
+    "fair"
+   ],
+   "spec": "Apply ideas of randomness, fairness and equally likely events to calculate expected outcomes."
+  },
+  {
+   "code": "P3",
+   "strand": "Probability",
+   "name": "Relative frequency and theoretical probability",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "relative frequency",
+    "probability scale"
+   ],
+   "spec": "Relate relative expected frequencies to theoretical probability, using the 0–1 probability scale."
+  },
+  {
+   "code": "P4",
+   "strand": "Probability",
+   "name": "Probabilities sum to 1",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "probability",
+    "table"
+   ],
+   "spec": "Probabilities of an exhaustive set of mutually exclusive outcomes sum to one."
+  },
+  {
+   "code": "P5",
+   "strand": "Probability",
+   "name": "Sample size and reliability",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "more reliable",
+    "sample size",
+    "more trials"
+   ],
+   "spec": "Understand that empirical unbiased samples tend towards theoretical distributions with increasing sample size."
+  },
+  {
+   "code": "P6",
+   "strand": "Probability",
+   "name": "Sets, Venn diagrams, systematic enumeration",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "venn",
+    "ξ",
+    "∩",
+    "∪",
+    "set"
+   ],
+   "spec": "Enumerate sets and combinations of sets systematically, using tables, grids, Venn diagrams and tree diagrams."
+  },
+  {
+   "code": "P7",
+   "strand": "Probability",
+   "name": "Sample spaces",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "sample space",
+    "two dice",
+    "spinner"
+   ],
+   "spec": "Construct theoretical possibility spaces for single and combined experiments with equally likely outcomes."
+  },
+  {
+   "code": "P8",
+   "strand": "Probability",
+   "name": "Combined events and tree diagrams (independent/dependent)",
+   "band": "6",
+   "higherOnly": false,
+   "keywords": [
+    "tree diagram",
+    "without replacement",
+    "at random",
+    "independent",
+    "both"
+   ],
+   "spec": "Calculate the probability of independent and dependent combined events, including using tree diagrams."
+  },
+  {
+   "code": "P9",
+   "strand": "Probability",
+   "name": "Conditional probability",
+   "band": "8-9",
+   "higherOnly": true,
+   "keywords": [
+    "given that",
+    "conditional"
+   ],
+   "spec": "Calculate and interpret conditional probabilities using two-way tables, tree diagrams and Venn diagrams."
+  },
+  {
+   "code": "S1",
+   "strand": "Statistics",
+   "name": "Sampling and populations",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "sample",
+    "population",
+    "biased",
+    "random sample"
+   ],
+   "spec": "Infer properties of populations or distributions from a sample, knowing the limitations of sampling."
+  },
+  {
+   "code": "S2",
+   "strand": "Statistics",
+   "name": "Charts, tables, time series, pie charts",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "pie chart",
+    "bar chart",
+    "pictogram",
+    "time series",
+    "frequency table"
+   ],
+   "spec": "Interpret and construct tables, charts and diagrams for categorical and discrete data, and line graphs for time series."
+  },
+  {
+   "code": "S3",
+   "strand": "Statistics",
+   "name": "Histograms and cumulative frequency",
+   "band": "7",
+   "higherOnly": true,
+   "keywords": [
+    "histogram",
+    "cumulative frequency",
+    "frequency density"
+   ],
+   "spec": "Construct and interpret histograms with equal and unequal class intervals and cumulative frequency graphs."
+  },
+  {
+   "code": "S4",
+   "strand": "Statistics",
+   "name": "Averages, spread, box plots, comparing distributions",
+   "band": "6",
+   "higherOnly": false,
+   "keywords": [
+    "box plot",
+    "median",
+    "interquartile",
+    "mean",
+    "range",
+    "quartile",
+    "compare"
+   ],
+   "spec": "Interpret and compare distributions using graphical representations including box plots, measures of central tendency and spread (range, quartiles and IQR)."
+  },
+  {
+   "code": "S5",
+   "strand": "Statistics",
+   "name": "Using statistics to describe a population",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "estimate",
+    "population"
+   ],
+   "spec": "Apply statistics to describe a population."
+  },
+  {
+   "code": "S6",
+   "strand": "Statistics",
+   "name": "Scatter graphs and correlation",
+   "band": "4-5",
+   "higherOnly": false,
+   "keywords": [
+    "scatter",
+    "correlation",
+    "line of best fit"
+   ],
+   "spec": "Use and interpret scatter graphs; recognise correlation and that it does not indicate causation; lines of best fit; interpolate and extrapolate."
+  }
+ ]
+}

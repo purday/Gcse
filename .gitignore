@@ -1,0 +1,10 @@
+node_modules/
+.passcode
+__pycache__/
+*.pyc
+# Raw downloads and unencrypted converted packs stay local (rebuild with tools/).
+papers/
+library_src/
+work/
+test-output/
+.DS_Store

@@ -1,0 +1,4 @@
+# Static site: everything is prebuilt and committed, so there is no build command.
+[build]
+  publish = "app"
+  command = ""
