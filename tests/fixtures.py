@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
 from packlib import build_pack_bytes  # noqa: E402
 import build_library  # noqa: E402
+import build_questionbank  # noqa: E402
 
 
 def crop_png(label: str, w=1600, h=420) -> bytes:
@@ -92,7 +93,10 @@ def main(out: Path, passcode: str):
         (src / f"{p[0]}.zip").write_bytes(test_paper(*p))
     lib = out / "site" / "library"
     shutil.rmtree(lib, ignore_errors=True)
-    build_library.build(src, lib, passcode)
+    qb = build_questionbank.build(src)
+    (out / "questionbank.json").write_text(json.dumps(qb))
+    (out / "site" / "data" / "topicmap.json").write_text(json.dumps(build_questionbank.topicmap(qb)))
+    build_library.build(src, lib, passcode, qb_path=out / "questionbank.json")
     (out / "feedback-for-paper.zip").write_bytes(feedback_for(papers[0][0]))
     img = Image.new("RGB", (3024, 4032), (250, 250, 245))
     d = ImageDraw.Draw(img)

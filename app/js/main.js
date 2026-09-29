@@ -1,7 +1,7 @@
 // App shell: lock screen, router and the Today / Papers / Progress / More views.
 
 import * as db from './db.js';
-import { h, $, toast, sheet, fmtDate, fmtHours, todayISO, addDays, daysBetween, downloadBlob } from './util.js';
+import { h, $, toast, hideToast, sheet, fmtDate, fmtHours, todayISO, addDays, daysBetween, downloadBlob } from './util.js';
 import { tryUnlock, restore, lock } from './lock.js';
 import { parsePack, storePack, storeFeedback, getPack, libraryPapers, loadLibraryPack, topicData } from './pack.js';
 import { getProgress, saveProgress, studySecsByDate, streak, dueTopics, addStudyTime } from './progress.js';
@@ -43,10 +43,12 @@ function listSheet(title, intro, items, actions) {
 }
 
 async function importFile(file) {
+  toast('Opening…', 'busy');
   let zip;
   try {
     zip = await window.JSZip.loadAsync(file);
   } catch {
+    hideToast('busy');
     await sheet({ title: 'That file did not open', body: 'Choose the .zip file your tutor sent. If it came as a download link, save it first.', actions: [{ label: 'OK', value: true, kind: 'primary' }] });
     return;
   }
@@ -61,6 +63,7 @@ async function importFile(file) {
     return;
   }
   const parsed = await parsePack(zip);
+  hideToast('busy');
   if (parsed.errors.length) {
     await listSheet('This pack has problems', 'Send this list to your tutor and ask for a fixed pack:', parsed.errors, [{ label: 'OK', value: true, kind: 'primary' }]);
     return;
@@ -240,6 +243,7 @@ async function confirmSitPaper(entry) {
     actions: [{ label: 'Not now', value: false }, { label: 'Start', value: true, kind: 'primary' }],
   });
   if (!ok) return;
+  toast('Opening the paper…', 'busy');
   try {
     const pack = await loadLibraryPack(entry.libraryId);
     const id = await startAttempt(pack.packId);
@@ -551,6 +555,7 @@ async function route() {
     renderLock();
     return;
   }
+  hideToast('busy');
   const [, view, arg] = (location.hash || '#/today').split('/');
   try {
     switch (view) {

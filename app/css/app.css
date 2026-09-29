@@ -18,7 +18,7 @@
   --paper-2: #f6f8fb;
   --ink: #151c27;
   --ink-2: #465063;
-  --ink-3: #6b7587;
+  --ink-3: #586273;
   --line: #d6dce5;
   --accent: #2046c8;
   --accent-ink: #ffffff;
@@ -92,6 +92,8 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
+/* iOS: follow the system text size (Dynamic Type); every size below is in rem. */
+@supports (font: -apple-system-body) { html { font: -apple-system-body; } }
 body {
   margin: 0;
   min-height: 100vh;
@@ -137,7 +139,7 @@ p { margin: 0; }
 .btn.ghost:hover { border-color: var(--ink-3); }
 .btn.danger { background: var(--bad-fill); color: #fff; }
 .btn.danger-outline { border-color: var(--bad); color: var(--bad); background: transparent; }
-.btn.small { min-height: 36px; padding: 0 14px; font-size: var(--fs-xs); }
+.btn.small { min-height: 40px; padding: 0 14px; font-size: var(--fs-xs); }
 .btn.block { width: 100%; }
 .btn.huge { min-height: 64px; font-size: var(--fs-l); padding: 0 28px; width: 100%; border-radius: 16px; box-shadow: var(--shadow); }
 .btn .plus { font: 800 1.6rem/1 var(--font-display); }
@@ -301,7 +303,14 @@ body.sitting .topbar, body.sitting .tabbar { display: none; }
   background: var(--paper); border-top: 1px solid var(--line);
 }
 .sit-foot .btn:first-child { justify-self: start; }
-.sit-foot .btn:last-child { justify-self: end; min-width: 120px; }
+.sit-foot .btn:last-child { justify-self: end; min-width: 0; padding: 0 26px; }
+@media (min-width: 400px) { .sit-foot .btn:last-child { min-width: 120px; } }
+@media (max-width: 359px) {
+  .sit-meta { display: none; }
+  .sit-bar { gap: 6px; }
+  .sit-foot .btn { padding: 0 12px; }
+  .timer { font-size: var(--fs-m); padding: 2px 4px; }
+}
 .sit-foot .btn.on { background: var(--warn-soft); border-color: var(--warn-fill); color: var(--warn); }
 .paused-cover { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; text-align: center; background: var(--ground); padding: var(--gutter); }
 .paused-cover > div { display: flex; flex-direction: column; gap: 12px; align-items: center; }
@@ -334,7 +343,7 @@ body.sitting .topbar, body.sitting .tabbar { display: none; }
 .answer-label { font-weight: 700; }
 .answer textarea { width: 100%; resize: none; font: 500 1.125rem/1.4 var(--font-mono); min-height: 52px; color: var(--accent); }
 .symbols { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
-.sym { flex: 0 0 auto; min-width: 40px; min-height: 40px; border-radius: 8px; border: 1px solid var(--line); background: var(--paper-2); font: 500 1rem/1 var(--font-mono); color: var(--ink); cursor: pointer; }
+.sym { flex: 0 0 auto; min-width: 44px; min-height: 44px; border-radius: 8px; border: 1px solid var(--line); background: var(--paper-2); font: 500 1rem/1 var(--font-mono); color: var(--ink); cursor: pointer; }
 .photo-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .hint-line { font-size: var(--fs-xs); color: var(--ink-3); }
 .thumbs { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -424,7 +433,7 @@ body.sitting .topbar, body.sitting .tabbar { display: none; }
 .s-none { background: var(--none-fill); color: var(--ink-2); }
 .cell.due { box-shadow: inset 0 0 0 2.5px var(--accent); }
 .segs { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; background: var(--paper-2); flex-wrap: wrap; }
-.seg { border: 0; background: transparent; border-radius: 999px; padding: 6px 10px; min-height: 32px; font: 700 var(--fs-xs)/1 var(--font-body); color: var(--ink-2); cursor: pointer; }
+.seg { border: 0; background: transparent; border-radius: 999px; padding: 6px 12px; min-height: 40px; font: 700 var(--fs-xs)/1 var(--font-body); color: var(--ink-2); cursor: pointer; }
 .seg.on { background: var(--paper); color: var(--ink); box-shadow: var(--shadow); }
 .mistakes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 .mistakes li { display: grid; grid-template-columns: auto auto 1fr; gap: 4px 10px; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--line); }

@@ -162,6 +162,8 @@ const dims = execFileSync('python3', ['-c', `from PIL import Image; im=Image.ope
 ok(dims[0] === 'JPEG' && Math.max(+dims[1], +dims[2]) === 1200, `photo compressed to JPEG ${dims[1]}x${dims[2]} (from 3024x4032, ${Math.round(photoBytes.length / 1024)} KB)`);
 const prog = JSON.parse(await rz.file('progress.json').async('string'));
 ok(prog.realPapersUsed.some((r) => r.id === 'test-2019-06-1h'), 'progress.json marks the real paper as used');
+const qbInZip = JSON.parse(await rz.file('reference/questionbank.json').async('string'));
+ok(qbInZip.questions.length === 48 && rz.file('reference/topics.json') && rz.file('reference/exam.json') && rz.file('reference/topicmap.json'), 'reference/ has question bank (decrypted), topics, topic map and exam config');
 ok(results.activeSecs >= 3, `active time recorded (${results.activeSecs}s)`);
 ok(prog.attempts.length === 1 && prog.sessions.length >= 1 && prog.sessions[0].secs >= 3, 'progress.json has the attempt and its study session');
 
@@ -202,6 +204,23 @@ await page.click('a[href="#/papers"]');
 await page.waitForSelector('.paper-row.used');
 ok((await page.textContent('.paper-row.used .pstate')).includes(`${fb.score}/80`), 'library shows paper as used with score');
 
+step('Tutor round trip (tutor/gcse_tutor.py marks the real results zip)');
+execFileSync('python3', ['tests/tutor_roundtrip.py', resultsPath, `${OUT}/tutor-feedback.zip`], { stdio: 'inherit' });
+await importZip(page, `${OUT}/tutor-feedback.zip`);
+await page.waitForSelector('.score-hero');
+ok((await page.textContent('.score .big')).trim() === '2', 'tutor feedback imported (2/80)');
+const progAfter = await page.evaluate(async () => (await import('./js/progress.js')).getProgress());
+ok(progAfter.bankQuestionsUsed?.length === 3 && progAfter.topics.A18?.note === 'roundtrip', `tutor progress.json applied (${progAfter.updatedBy === 'tutor' ? 'replaced' : 'merged'}: bank questions and topic notes from the tutor)`);
+ok(progAfter.sessions.length >= 1 && progAfter.attempts.length >= 2, 'local study sessions and attempts kept by the merge');
+await page.click('button:has-text("Start next lesson")');
+await page.waitForSelector('.qcard');
+ok((await page.textContent('.sit-name')).includes('Roundtrip'), 'tutor-built next lesson opened');
+await page.waitForSelector('figcaption >> text="Original AQA question"');
+ok(true, 'real question shows the original cropped image via libraryRef');
+await shot(page, '08b-libraryref');
+await page.click('.sit-bar >> text="Exit"');
+await page.waitForSelector('#import-btn');
+
 step('Backup, wipe, restore');
 await page.click('a[href="#/more"]');
 await page.waitForSelector('text=Save full backup');
@@ -219,7 +238,7 @@ await Promise.all([page.waitForEvent('load'), sheetClick(page, 'Restore')]);
 await page.waitForSelector('#import-btn');
 await page.click('a[href="#/progress"]');
 await page.waitForSelector('.heat');
-ok((await page.$$('.viz-dot')).length === 1, 'progress restored from backup');
+ok((await page.$$('.viz-dot')).length >= 1, 'progress restored from backup');
 
 step('Bad pack is rejected with reasons');
 const bad = new JSZip();

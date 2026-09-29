@@ -1,0 +1,57 @@
+{
+  "exam": {
+    "board": "AQA",
+    "spec": "8300",
+    "tier": "Higher",
+    "series": "November 2026",
+    "papers": [
+      { "paper": 1, "code": "8300/1H", "date": "2026-11-04", "start": "09:00", "durationMins": 90, "calculator": false, "maxMarks": 80 },
+      { "paper": 2, "code": "8300/2H", "date": "2026-11-06", "start": "09:00", "durationMins": 90, "calculator": true, "maxMarks": 80 },
+      { "paper": 3, "code": "8300/3H", "date": "2026-11-09", "start": "09:00", "durationMins": 90, "calculator": true, "maxMarks": 80 }
+    ],
+    "resultsDay": null,
+    "source": "AQA GCSE Mathematics 8300 key dates (https://www.aqa.org.uk/subjects/mathematics/gcse/mathematics-8300/key-dates) and the AQA November 2026 timetable",
+    "checked": "2026-09-29",
+    "checkNote": "Found by web search because this environment could not open aqa.org.uk directly. Re-check on the AQA key dates page before relying on the start time."
+  },
+  "student": {
+    "previous": { "series": null, "tier": "Foundation", "grade": 5, "marks": 197, "maxMarks": 240 },
+    "mustHave": 6,
+    "stretch": [7, 8],
+    "why": { "6": "A-level Maths", "8": "Further Maths" },
+    "studyPlan": { "hoursPerDay": 2, "daysPerWeek": 6 }
+  },
+  "gradeBoundaries": {
+    "maxMarks": 240,
+    "note": "Higher tier 8300H, total out of 240 across Papers 1-3. Grade 3 is the 'allowed' grade on Higher. Per-paper equivalents are these divided by 3.",
+    "default": "June 2026",
+    "series": [
+      {
+        "series": "June 2026",
+        "published": "2026-08-20",
+        "grades": { "9": 219, "8": 192, "7": 166, "6": 131, "5": 97, "4": 63, "3": 46 },
+        "source": "https://www.aqa.org.uk/files/QHo9jKqPL0pZ5xdB09S2Ww/a8c1634eeced8e0ef79b2d179398dfd2414ee291.pdf"
+      },
+      {
+        "series": "November 2025",
+        "published": "2026-01-08",
+        "grades": { "9": 212, "8": 185, "7": 158, "6": 126, "5": 94, "4": 63, "3": 47 },
+        "source": "https://www.aqa.org.uk/files/bbbf8f78-8289-403f-8d33-94b93d748ed0/ee5e8646909aa5a85a3cb125d6cdfb30312af259.pdf"
+      },
+      {
+        "series": "June 2025",
+        "published": "2025-08-21",
+        "grades": { "9": 219, "8": 191, "7": 164, "6": 130, "5": 96, "4": 63, "3": 46 },
+        "source": "AQA-GCSE-GDE-BDY-JUN-2025.PDF"
+      },
+      {
+        "series": "November 2024",
+        "published": "2025-01-09",
+        "grades": { "9": 212, "8": 184, "7": 157, "6": 125, "5": 93, "4": 61, "3": 45 },
+        "source": "AQA-GCSE-GDE-BDY-NOV-2024.PDF"
+      }
+    ],
+    "checked": "2026-09-29",
+    "checkNote": "Values taken from AQA's grade boundary PDFs as quoted in search results (two independent searches per series agreed). Re-check against the AQA PDFs when aqa.org.uk is reachable."
+  }
+}

@@ -60,7 +60,7 @@ def get_passcode() -> str:
     return pc
 
 
-def build(src: Path, out: Path, passcode: str) -> dict:
+def build(src: Path, out: Path, passcode: str, qb_path: Path | None = None) -> dict:
     out.mkdir(parents=True, exist_ok=True)
     old = out / "index.json"
     salt = None
@@ -108,6 +108,13 @@ def build(src: Path, out: Path, passcode: str) -> dict:
             "file": fname,
             "warnings": len(warnings),
         })
+    qb_file = None
+    qb_path = qb_path or ROOT / "questionbank.json"
+    if qb_path.exists():
+        qb = qb_path.read_bytes()
+        qb_file = f"questionbank.{hashlib.sha256(qb).hexdigest()[:10]}.bin"
+        (out / qb_file).write_bytes(encrypt(key, qb))
+        keep.add(qb_file)
     for f in out.glob("*.bin"):
         if f.name not in keep:
             f.unlink()
@@ -122,6 +129,7 @@ def build(src: Path, out: Path, passcode: str) -> dict:
             "check": base64.b64encode(encrypt(key, b"gcse-ok")).decode(),
         },
         "papers": papers,
+        "questionbank": qb_file,
     }
     (out / "index.json").write_text(json.dumps(index, indent=1))
     for name, errs in problems:

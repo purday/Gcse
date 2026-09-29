@@ -276,7 +276,7 @@ export async function renderSit(root, attemptId, go) {
       h('span', { class: 'q-marks mono' }, marksLabel(q.marks)));
     const body = await renderQuestionBody(pack, q, { showHints: !timed });
 
-    const ta = h('textarea', { id: 'answer', rows: '2', placeholder: 'Type your final answer', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false' });
+    const ta = h('textarea', { id: 'answer', rows: '2', placeholder: 'Type your final answer', autocomplete: 'off', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false', enterkeyhint: 'done' });
     ta.value = a.typed;
     const grow = () => { ta.style.height = 'auto'; ta.style.height = `${Math.min(ta.scrollHeight, 240)}px`; };
     ta.addEventListener('input', () => { a.typed = ta.value; grow(); dirty = true; saveSoon(); renderNav(); });

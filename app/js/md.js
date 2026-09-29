@@ -52,9 +52,13 @@ function extractMath(src) {
       const display = src[i + 1] === '$';
       const close = display ? src.indexOf('$$', i + 2) : inlineClose(src, i + 1);
       if (close > -1) {
-        math.push({ tex: src.slice(i + (display ? 2 : 1), close), display });
+        let end = close + (display ? 2 : 1);
+        // Keep punctuation straight after inline maths on the same line as it.
+        const punct = !display && /[,.;:!?)]/.test(src[end] || '') ? src[end] : '';
+        math.push({ tex: src.slice(i + (display ? 2 : 1), close), display, punct });
+        if (punct) end++;
         text += `@@M${math.length - 1}@@`;
-        i = close + (display ? 2 : 1);
+        i = end;
         continue;
       }
     }
@@ -82,7 +86,10 @@ export function renderMarkdown(src, imageResolver) {
   } finally {
     resolveImage = null;
   }
-  return html.replace(/@@M(\d+)@@/g, (_, n) => tex(math[n].tex, math[n].display));
+  return html.replace(/@@M(\d+)@@/g, (_, n) => {
+    const m = math[n];
+    return m.punct ? `<span class="nowrap">${tex(m.tex, false)}${esc(m.punct)}</span>` : tex(m.tex, m.display);
+  });
 }
 
 // Short single-line markdown (no surrounding <p>).

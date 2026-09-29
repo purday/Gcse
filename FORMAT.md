@@ -1,6 +1,6 @@
 # Pack format (version 1)
 
-This is the contract between the **player** (the web app) and the **tutor** (Claude in a Claude Project). Both sides must follow it exactly. The player rejects a zip that breaks a **must** rule and shows a warning for a zip that breaks a **should** rule.
+This is the contract between the **player** (the web app) and the **tutor** (Claude in a Claude Project). Both sides must follow it exactly. The tutor's checker (`gcse_tutor.check_pack`) enforces every **must** rule; the player rejects the structural failures listed in section 5 and shows the rest as warnings he can pass on to the tutor.
 
 There are three kinds of file:
 
@@ -248,6 +248,11 @@ markscheme.json        copied byte-for-byte from the pack (still base64-wrapped)
 results.json           his answers
 photos/                JPEG photos of working, about 1200 px on the long edge
 progress.json          his full current progress (section 4)
+reference/             copies of the player's reference data, so the tutor always has current files:
+  questionbank.json    the real question bank (section 3), when the library is installed
+  topicmap.json        topic frequency, typical marks, common mistakes
+  topics.json          spec topic codes and names
+  exam.json            exam dates and grade boundaries
 ```
 
 ### 2.1 `results.json`
@@ -367,6 +372,9 @@ One JSON object holds his whole study history. The player keeps it in IndexedDB,
   "realPapersUsed": [
     { "id": "aqa-2023-06-1h", "libraryId": "aqa-2023-06-1h", "date": "2026-10-02", "packId": "aqa-2023-06-1h", "score": 51 }
   ],
+  "bankQuestionsUsed": [
+    { "id": "aqa-2019-11-2h:q12.1", "packId": "L-2026-10-03-quadratics", "date": "2026-10-03" }
+  ],
   "plan": { "phase": "secure-6", "note": "Full real paper due 2026-10-06" },
   "sessions": [
     { "id": "s-1759512345678", "date": "2026-10-03", "packId": "L-2026-10-03-quadratics", "attemptId": "a-1759512345678", "secs": 3190 }
@@ -389,6 +397,7 @@ One JSON object holds his whole study history. The player keeps it in IndexedDB,
 | `gradeEstimates` | tutor | One per marking, newest last. |
 | `mistakes` | tutor (player adds from feedback) | One per lost-mark group. Never delete: set `resolved: true`. |
 | `realPapersUsed` | both | `id` = library ID. The player adds an entry when he **starts** a library paper; the tutor fills in `score`. |
+| `bankQuestionsUsed` | tutor | `{ "id": "<question bank id>", "packId", "date" }` for every real question reused in a lesson, so the tutor does not repeat them. |
 | `plan`, `notes`, `student` | tutor | Free-form objects/text. |
 | `sessions`, `attempts` | player | Append-only logs the player writes. The tutor copies them through unchanged. |
 
@@ -396,7 +405,7 @@ One JSON object holds his whole study history. The player keeps it in IndexedDB,
 
 1. If `updatedAt` is **newer than the local copy**, the incoming file replaces the local progress.
 2. If it is older than the local copy but newer than the last tutor copy the player accepted, the incoming **tutor-owned** sections (`topics`, `gradeEstimates`, `plan`, `notes`, `student`) still replace the local ones. This covers him studying between sending results and getting feedback.
-3. In both cases the arrays `scores`, `mistakes`, `realPapersUsed`, `sessions` and `attempts` are merged by `id` afterwards, so nothing recorded on the device is lost. On an `id` clash the incoming entry wins.
+3. In both cases the arrays `scores`, `mistakes`, `realPapersUsed`, `bankQuestionsUsed`, `gradeEstimates`, `sessions` and `attempts` are merged by `id` afterwards, so nothing recorded on the device is lost. On an `id` clash the incoming entry wins.
 4. Otherwise the file is ignored.
 
 When a feedback pack has **no** `progress.json`, the player updates progress itself from `feedback.json`: it adds the score, grade estimate and mistakes, and applies the topic rules above (a full-mark answer adds today's date to `correctDates`, advances `srStage` and sets `nextDue`; a lost mark sets `srStage` to 0 and `nextDue` to tomorrow).
@@ -407,8 +416,9 @@ When a feedback pack has **no** `progress.json`, the player updates progress its
 
 | Check | Result if it fails |
 |---|---|
-| Zip opens; `manifest.json` parses; required fields present and typed; `formatVersion` is 1 | Rejected |
-| `packId` matches the ID pattern | Rejected |
+| Zip opens and `manifest.json` parses | Rejected |
+| `packId` matches the ID pattern; `type`, `source` and `totalMarks` valid; `formatVersion` is 1 if present | Rejected |
+| `formatVersion`, `title`, `created`, `timeLimitMins` or `calculator` missing | Warning (defaults: 1, the packId, none, untimed, calculator allowed) |
 | Paper/lesson: `questions.json` is a non-empty array; every question has `id`, `number`, `part`, `marks`, `topics`, `prompt`, `answerType`; IDs unique | Rejected |
 | Paper/lesson: `markscheme.json` present and shaped `{ "encoding": "base64", "data": "..." }` | Rejected |
 | Feedback: `feedback.json` present with `forPackId`, `score`, `maxScore`, `questions` | Rejected |

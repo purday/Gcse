@@ -4,6 +4,28 @@ import * as db from './db.js';
 import { h, todayISO, fmtClock, shareOrDownload, downloadBlob, toast, fmtDate } from './util.js';
 import { getPack } from './pack.js';
 import { getProgress } from './progress.js';
+import { libraryIndex, decryptBytes } from './lock.js';
+
+// Reference data copied into every results zip so the tutor always has the
+// current question bank, topic list and exam config inside its sandbox.
+async function addReference(zip) {
+  const add = async (url, name) => {
+    try {
+      const res = await fetch(url);
+      if (res.ok) zip.file(`reference/${name}`, await res.arrayBuffer());
+    } catch { /* offline and not cached: skip */ }
+  };
+  await add('data/topics.json', 'topics.json');
+  await add('data/topicmap.json', 'topicmap.json');
+  await add('config/exam.json', 'exam.json');
+  try {
+    const idx = await libraryIndex();
+    if (idx.questionbank) {
+      const res = await fetch(`library/${idx.questionbank}`);
+      if (res.ok) zip.file('reference/questionbank.json', await decryptBytes(await res.arrayBuffer()));
+    }
+  } catch { /* no bank yet */ }
+}
 
 export async function buildResults(attemptId) {
   const att = await db.get('attempts', attemptId);
@@ -48,6 +70,7 @@ export async function buildResults(attemptId) {
   };
   zip.file('results.json', JSON.stringify(results, null, 2));
   zip.file('progress.json', JSON.stringify(await getProgress(), null, 2));
+  await addReference(zip);
 
   const date = (att.submittedAt || '').slice(0, 10) || todayISO();
   const name = `results_${att.packId}_${date}.zip`;

@@ -103,6 +103,11 @@ export function questionLabel(q) {
 }
 
 let toastTimer;
+export function hideToast(kind) {
+  const el = document.getElementById('toast');
+  if (el && (!kind || el.classList.contains(kind))) el.className = 'toast';
+}
+
 export function toast(msg, kind = 'info') {
   let el = document.getElementById('toast');
   if (!el) {

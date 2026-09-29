@@ -4,7 +4,7 @@ import { kvGet, kvSet } from './db.js';
 import { nowISO, todayISO, addDays, ts, parseDate } from './util.js';
 
 const SR_DAYS = [1, 3, 7];
-const MERGE_ARRAYS = ['scores', 'mistakes', 'realPapersUsed', 'sessions', 'attempts', 'gradeEstimates'];
+const MERGE_ARRAYS = ['scores', 'mistakes', 'realPapersUsed', 'sessions', 'attempts', 'gradeEstimates', 'bankQuestionsUsed'];
 const TUTOR_OWNED = ['topics', 'gradeEstimates', 'plan', 'notes', 'student'];
 
 export function emptyProgress() {
@@ -18,6 +18,7 @@ export function emptyProgress() {
     gradeEstimates: [],
     mistakes: [],
     realPapersUsed: [],
+    bankQuestionsUsed: [],
     plan: {},
     sessions: [],
     attempts: [],
