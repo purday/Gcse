@@ -28,6 +28,8 @@ function texOk(where, src) {
   if (/\\n(?![a-z])/.test(String(src ?? ''))) fail(where, `literal \\n in text: ${String(src).slice(0, 60)}`);
   for (const { tex, display } of mathSegments(src)) {
     if (/\\\\[a-zA-Z]/.test(tex)) fail(where, `doubled backslash (renders as a line break): "${tex}"`);
+    // "sin x" without a backslash renders as italic s·i·n.
+    if (/(^|[^\\a-zA-Z])(sin|cos|tan)(?![a-zA-Z])/.test(tex.replace(/\\text\{[^}]*\}/g, ''))) fail(where, `bare trig name (needs \\sin etc.): "${tex}"`);
     try {
       katex.renderToString(tex, { displayMode: display, throwOnError: true, strict: 'error' });
     } catch (e) {
@@ -59,6 +61,7 @@ function derive(spec) {
     }
     case 'choice': return spec.correct;
     case 'surd': return null;
+    case 'pi': return `${+spec.k.toPrecision(12)}π`;
     case 'text': return null;
     case 'multi': return spec.parts.map((p) => derive(p.spec));
     default: return null;

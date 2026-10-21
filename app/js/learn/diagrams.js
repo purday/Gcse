@@ -18,7 +18,9 @@ function fit(points, w, h, pad) {
 }
 
 // Triangle from three points. labels: vertex names; sides: {AB: '7 cm'}; angles: {B: '78°'}; right: 'B'
-export function triangle({ pts, names = ['A', 'B', 'C'], sides = {}, angles = {}, right = null, note = true, w = 340, h = 230 }) {
+// segments: extra lines in the same coordinates as pts, e.g. [{ a: [x, y], b: [x, y], na: 'D', nb: 'E', label: '5 cm', draw: true }].
+// draw: false places only the label (for a length along part of a side).
+export function triangle({ pts, names = ['A', 'B', 'C'], sides = {}, angles = {}, right = null, segments = [], note = true, w = 340, h = 230 }) {
   const map = fit(pts, w, h - 14, 34);
   const P = pts.map(map);
   const idx = Object.fromEntries(names.map((n, i) => [n, i]));
@@ -51,6 +53,22 @@ export function triangle({ pts, names = ['A', 'B', 'C'], sides = {}, angles = {}
     const bis = [ua[0] / la + ub[0] / lb, ua[1] / la + ub[1] / lb]; const lbis = Math.hypot(...bis) || 1;
     body += t(v[0] + (bis[0] / lbis) * 42 - 12, v[1] + (bis[1] / lbis) * 42 + 5, label, 'font-size="14"');
   }
+  for (const sg of segments) {
+    const a = map(sg.a); const b = map(sg.b);
+    if (sg.draw !== false) body += `<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="#000" stroke-width="2"/>`;
+    for (const [p, n] of [[a, sg.na], [b, sg.nb]]) {
+      if (!n) continue;
+      const dx = p[0] - cx; const dy = p[1] - cy; const L = Math.hypot(dx, dy) || 1;
+      body += t(p[0] + (dx / L) * 16 - 5, p[1] + (dy / L) * 16 + 5, n, 'font-style="italic"');
+    }
+    if (sg.label) {
+      const mx = (a[0] + b[0]) / 2; const my = (a[1] + b[1]) / 2;
+      let nx = -(b[1] - a[1]); let ny = b[0] - a[0];
+      const L = Math.hypot(nx, ny) || 1; nx /= L; ny /= L;
+      if ((mx + nx - cx) ** 2 + (my + ny - cy) ** 2 < (mx - cx) ** 2 + (my - cy) ** 2) { nx = -nx; ny = -ny; }
+      body += t(mx + nx * 16, my + ny * 16 + 5, sg.label, 'text-anchor="middle"');
+    }
+  }
   if (right) {
     const i = idx[right]; const v = P[i]; const a = P[(i + 1) % 3]; const b = P[(i + 2) % 3];
     const ua = [(a[0] - v[0]), (a[1] - v[1])]; const ub = [(b[0] - v[0]), (b[1] - v[1])];
@@ -64,7 +82,9 @@ export function triangle({ pts, names = ['A', 'B', 'C'], sides = {}, angles = {}
 
 // Right-angled triangle with the right angle at B, legs along axes.
 export function rightTriangle({ base, height, sides = {}, angles = {}, names = ['A', 'B', 'C'], note = true }) {
-  return triangle({ pts: [[0, height], [0, 0], [base, 0]], names, sides, angles, right: names[1], note });
+  // Very thin triangles squash the labels together; it is marked "not drawn accurately" anyway.
+  const hDraw = Math.min(Math.max(height, base * 0.32), base * 2.2);
+  return triangle({ pts: [[0, hDraw], [0, 0], [base, 0]], names, sides, angles, right: names[1], note });
 }
 
 // Triangle from two sides and the included angle at B (for sine/cosine rule pictures).

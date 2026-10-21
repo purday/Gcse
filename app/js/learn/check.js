@@ -267,6 +267,18 @@ function checkSurd(input, spec) {
   return { ok: true };
 }
 
+// Exact answer in terms of π: e.g. 36π, 9π/2, 4.5pi
+function checkPi(input, spec) {
+  const t = stripUnits(stripLhs(input));
+  if (!/π|pi/i.test(t)) {
+    const x = num(t);
+    if (Number.isFinite(x) && near(x, spec.k * Math.PI, Math.abs(spec.k * Math.PI) * 1e-3)) return { ok: false, msg: 'Right value. Leave it in terms of π, e.g. 36π.' };
+    return { ok: false, msg: 'Give your answer in terms of π, e.g. 36π.' };
+  }
+  const x = num(t);
+  return { ok: Number.isFinite(x) && near(x, spec.k * Math.PI, Math.abs(spec.k * Math.PI) * 1e-9 + 1e-12) };
+}
+
 function checkText(input, spec) {
   const t = clean(input).toLowerCase();
   return { ok: spec.accept.some((r) => new RegExp(r, 'i').test(t)) };
@@ -285,6 +297,7 @@ export function check(input, spec) {
     case 'coords': return checkCoords(input, spec);
     case 'inequality': return checkInequality(input, spec);
     case 'surd': return checkSurd(input, spec);
+    case 'pi': return checkPi(input, spec);
     case 'choice': return { ok: Number(input) === spec.correct };
     case 'text': return checkText(input, spec);
     case 'multi': {

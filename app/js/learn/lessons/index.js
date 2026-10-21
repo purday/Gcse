@@ -9,6 +9,16 @@ import rearranging from './rearranging.js';
 import inequalities from './inequalities.js';
 import straightLines from './straight-lines.js';
 import sequences from './sequences.js';
+import percentages from './percentages.js';
+import proportion from './proportion.js';
+import ratio from './ratio.js';
+import standardForm from './standard-form.js';
+import surds from './surds.js';
+import bounds from './bounds.js';
+import pythagTrig from './pythag-trig.js';
+import circlesVolume from './circles-volume.js';
+import sineCosine from './sine-cosine.js';
+import similarity from './similarity.js';
 import examTechnique from './exam-technique.js';
 
 export const LESSONS = [
@@ -21,6 +31,16 @@ export const LESSONS = [
   { group: 'core', lesson: inequalities },
   { group: 'core', lesson: straightLines },
   { group: 'core', lesson: sequences },
+  { group: 'core', lesson: percentages },
+  { group: 'core', lesson: proportion },
+  { group: 'core', lesson: ratio },
+  { group: 'core', lesson: standardForm },
+  { group: 'core', lesson: pythagTrig },
+  { group: 'core', lesson: circlesVolume },
+  { group: 'push', lesson: surds },
+  { group: 'push', lesson: bounds },
+  { group: 'push', lesson: sineCosine },
+  { group: 'push', lesson: similarity },
 ].map(({ group, lesson }) => ({ ...lesson, group }));
 
 export const BY_ID = Object.fromEntries(LESSONS.map((l) => [l.id, l]));
