@@ -11,6 +11,8 @@ import { applyFeedbackPack, renderFeedback, startNext } from './feedback.js';
 import { scoreChart, hoursChart } from './charts.js';
 import { exportBackup, isBackup, restoreBackup } from './backup.js';
 import { renderMarkdown } from './md.js';
+import { renderLearnHome, renderLesson, renderSession, renderCards, LESSONS, lessonForTopic } from './learn/view.js';
+import { buildPlan } from './learn/plan.js';
 
 const GOAL_SECS = 2 * 3600;
 const app = document.getElementById('app');
@@ -105,7 +107,7 @@ function daysTo(date) {
 }
 
 function tabbar(active) {
-  const tabs = [['today', 'Today'], ['papers', 'Papers'], ['progress', 'Progress'], ['more', 'More']];
+  const tabs = [['today', 'Today'], ['learn', 'Learn'], ['papers', 'Papers'], ['progress', 'Progress'], ['more', 'More']];
   return h('nav', { class: 'tabbar', 'aria-label': 'Main' },
     tabs.map(([id, label]) => h('a', { href: `#/${id}`, class: `tab ${active === id ? 'on' : ''}`, 'aria-current': active === id ? 'page' : null },
       h('span', { class: `tab-ico ico-${id}`, 'aria-hidden': 'true' }), h('span', null, label))));
@@ -205,6 +207,13 @@ async function renderToday() {
         latestFb.nextBlob && !nextStarted ? h('button', { class: 'btn primary small', onclick: () => startNext(latestFb.packId, go) }, 'Start next lesson') : null)));
   }
 
+  const plan = buildPlan({ p, lessons: LESSONS, exam: cfg });
+  const planLeft = plan.items.filter((it) => !it.done && it.kind !== 'cards');
+  const planCard = h('a', { class: 'card link plan-card', href: '#/learn' },
+    h('span', { class: 'eyebrow' }, "Today's learning plan"),
+    h('strong', null, planLeft.length ? planLeft[0].title : 'All done for today'),
+    h('span', { class: 'fine' }, planLeft.length > 1 ? `Then ${planLeft.slice(1, 3).map((x) => x.title.toLowerCase()).join(', ')}` : planLeft.length ? planLeft[0].detail : 'Nice work. Try mixed practice or the must-know facts.'));
+
   const view = shell('today',
     h('section', { class: 'hero' },
       h('p', { class: 'eyebrow' }, `AQA 8300 Higher · ${cfg.exam.series}`),
@@ -213,6 +222,7 @@ async function renderToday() {
     h('section', { class: 'import-block' },
       h('button', { class: 'btn primary huge', onclick: pickImport, id: 'import-btn' }, h('span', { class: 'plus', 'aria-hidden': 'true' }, '+'), 'Import pack'),
       h('p', { class: 'fine' }, 'Open a lesson, paper or feedback zip from your tutor.')),
+    planCard,
     cards.length ? h('section', { class: 'stack' }, cards) : null,
     h('section', { class: 'today-strip' },
       h('div', { class: 'meter-block' },
@@ -475,8 +485,11 @@ async function topicSheet(t, st) {
         h('div', null, h('dt', null, 'Right on'), h('dd', { class: 'mono' }, `${(st.correctDates || []).length}/3 days`)),
         h('div', null, h('dt', null, 'Next review'), h('dd', { class: 'mono' }, st.nextDue ? fmtDate(st.nextDue) : '–'))) : h('p', { class: 'fine' }, 'Not practised yet.'),
       st?.note ? h('p', null, st.note) : null),
-    actions: [{ label: 'Close', value: true, kind: 'primary' }],
-  });
+    actions: [
+      ...(lessonForTopic(LESSONS, t.code) ? [{ label: 'Open the lesson', value: 'lesson' }] : []),
+      { label: 'Close', value: true, kind: 'primary' },
+    ],
+  }).then((v) => { if (v === 'lesson') go(`#/learn/${lessonForTopic(LESSONS, t.code).id}`); });
 }
 
 async function logStudy() {
@@ -564,6 +577,22 @@ async function route() {
   const [, view, arg] = (location.hash || '#/today').split('/');
   try {
     switch (view) {
+      case 'learn': {
+        const sub = arg ? decodeURIComponent(arg) : '';
+        if (!sub) {
+          app.replaceChildren(shell('learn', h('div', { id: 'learn' })));
+          await renderLearnHome($('#learn'), await loadConfig());
+        } else if (['retry', 'review', 'mix'].includes(sub)) {
+          app.replaceChildren(shell('learn', h('div', { id: 'learn', class: 'page narrow' })));
+          cleanup = await renderSession($('#learn'), sub, go);
+        } else if (sub === 'cards') {
+          app.replaceChildren(shell('learn', h('div', { id: 'learn', class: 'page narrow' })));
+          await renderCards($('#learn'));
+        } else {
+          cleanup = await renderLesson(app, sub, go);
+        }
+        break;
+      }
       case 'papers': await renderPapers(); break;
       case 'progress': await renderProgress(); break;
       case 'more': await renderMore(); break;
@@ -577,7 +606,7 @@ async function route() {
     console.error(e);
     app.replaceChildren(shell('today', h('p', { class: 'form-error' }, `Something went wrong: ${e.message}`)));
   }
-  if (!['sit'].includes(view)) window.scrollTo(0, 0);
+  if (!['sit', 'learn'].includes(view)) window.scrollTo(0, 0);
 }
 
 window.addEventListener('hashchange', route);

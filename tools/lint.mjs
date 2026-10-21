@@ -1,7 +1,7 @@
 // npm run lint: syntax-check every browser module, Node script and Python file.
 import { execFileSync } from 'node:child_process';
 import { readdirSync } from 'node:fs';
-const list = (dir, ext) => readdirSync(dir).filter((f) => f.endsWith(ext)).map((f) => `${dir}/${f}`);
+const list = (dir, ext) => readdirSync(dir, { recursive: true }).filter((f) => f.endsWith(ext)).map((f) => `${dir}/${f}`);
 let bad = 0;
 const check = (cmd, args, file) => {
   try { execFileSync(cmd, args, { stdio: 'pipe' }); } catch (e) { bad++; console.error(`✗ ${file}\n${e.stderr}`); }

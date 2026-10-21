@@ -21,6 +21,8 @@ export function emptyProgress() {
     bankQuestionsUsed: [],
     markLog: [],
     verdicts: [],
+    retryQueue: [],
+    learnProgress: {},
     plan: {},
     sessions: [],
     attempts: [],
@@ -33,6 +35,8 @@ function normalise(p) {
   const out = { ...base, ...p };
   for (const k of MERGE_ARRAYS) if (!Array.isArray(out[k])) out[k] = [];
   if (!out.topics || typeof out.topics !== 'object') out.topics = {};
+  if (!Array.isArray(out.retryQueue)) out.retryQueue = [];
+  if (!out.learnProgress || typeof out.learnProgress !== 'object') out.learnProgress = {};
   return out;
 }
 
@@ -57,7 +61,7 @@ export async function replaceProgress(p) {
   await kvSet('progress', cache);
 }
 
-function upsert(list, item) {
+export function upsert(list, item) {
   const i = list.findIndex((x) => x.id === item.id);
   if (i === -1) list.push(item);
   else list[i] = { ...list[i], ...item };
@@ -242,6 +246,9 @@ export async function mergeIncoming(incoming) {
     for (const k of MERGE_ARRAYS) result[k] = unionById(inc[k], local[k]);
     result.topics = { ...local.topics, ...inc.topics };
   }
+  // Learn mode state is owned by the device: keep local entries over incoming ones.
+  result.retryQueue = unionById(local.retryQueue, inc.retryQueue);
+  result.learnProgress = { ...(inc.learnProgress || {}), ...(local.learnProgress || {}) };
   cache = recomputeTopics(normalise(result));
   cache.updatedAt = newer ? inc.updatedAt : nowISO();
   cache.updatedBy = newer ? inc.updatedBy || 'tutor' : 'app';

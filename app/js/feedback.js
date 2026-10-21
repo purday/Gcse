@@ -6,6 +6,7 @@ import { renderMarkdown, renderInline } from './md.js';
 import { getPack, parsePack, storePack, imageURL, topicData } from './pack.js';
 import { getProgress, saveProgress, applyFeedback, mergeIncoming } from './progress.js';
 import { startAttempt, zoomImage } from './sit.js';
+import { LESSONS, lessonForTopic } from './learn/view.js';
 
 // Called after a feedback pack has been parsed and stored.
 export async function applyFeedbackPack(parsed, rec) {
@@ -116,6 +117,8 @@ export async function renderFeedback(root, feedbackPackId, go) {
         h('div', { class: 'md', html: renderMarkdown(fq.modelAnswer, resolver) })) : null));
   }
 
+  const weakCodes = [...new Set((fb.questions || []).filter((q) => (q.lost || []).length).flatMap((q) => q.topics || []))];
+  const learnLinks = [...new Map(weakCodes.map((c) => lessonForTopic(LESSONS, c)).filter(Boolean).map((l) => [l.id, l])).values()];
   const list = (items, cls) => h('ul', { class: `bullets ${cls}` }, (items || []).map((t) => h('li', { html: renderInline(t) })));
 
   root.replaceChildren(h('div', { class: 'page narrow feedback' },
@@ -136,6 +139,9 @@ export async function renderFeedback(root, feedbackPackId, go) {
     h('div', { class: 'two' },
       h('section', null, h('h2', null, 'Wins'), list(fb.wins, 'wins')),
       h('section', null, h('h2', null, 'Fixes'), list(fb.fixes, 'fixes'))),
+    learnLinks.length ? h('section', { class: 'card learn-links' }, h('h2', null, 'Learn what you dropped'),
+      h('p', { class: 'fine' }, 'Step-by-step lessons for the topics where you lost marks.'),
+      h('div', { class: 'row' }, learnLinks.slice(0, 4).map((l) => h('a', { class: 'btn secondary small', href: `#/learn/${l.id}` }, l.title)))) : null,
     fb.topics?.length ? h('section', null, h('h2', null, 'Topics'),
       h('div', { class: 'chips' }, fb.topics.map((t) => {
         const [label, kind] = VERDICT[t.verdict] || [t.verdict, ''];
