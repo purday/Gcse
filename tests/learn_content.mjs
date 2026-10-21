@@ -64,6 +64,7 @@ function derive(spec) {
     case 'choice': return spec.correct;
     case 'surd': return null;
     case 'pi': return `${+spec.k.toPrecision(12)}π`;
+    case 'primes': return null;
     case 'text': return null;
     case 'multi': return spec.parts.map((p) => derive(p.spec));
     default: return null;

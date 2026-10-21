@@ -63,6 +63,13 @@ const frac = { kind: 'expr', expr: '2/(x+1)+3/(x-2)', form: 'fraction' };
 ok('(5x-1)/((x+1)(x-2))', frac); ok('(5x - 1)/(x^2 - x - 2)', frac); no('2/(x+1)+3/(x-2)', frac); no('(2(x-2)+3(x+1))/((x+1)(x-2))', frac); no('(5x+1)/((x+1)(x-2))', frac);
 const inv = { kind: 'expr', expr: '(x-5)/3' };
 ok('f^-1(x) = (x-5)/3', inv); ok('f⁻¹(x) = (x - 5)/3', inv); ok('f^(-1)(x)=(x-5)/3', inv); ok('fg(x) = (x-5)/3', inv); ok('y = (x-5)/3', inv); no('(x+5)/3', inv);
+// equations in any arrangement (tangent lines)
+const tan = { kind: 'equation', lhsVar: 'y', expr: '-3/4*x+25/4', vars: ['x'], anyForm: true };
+ok('y = -3/4x + 25/4', tan); ok('3x + 4y = 25', tan); ok('4y = 25 - 3x', tan); ok('25 = 3x + 4y', tan); no('3x + 4y = 24', tan); no('4x + 3y = 25', tan); no('y = -3/4x', tan);
+ok('3x + 4y = 25', { ...tan }) ; no('3x + 4y = 25', { ...tan, anyForm: false });
+// prime factor products
+const pf = { kind: 'primes', n: 360 };
+ok('2^3 × 3^2 × 5', pf); ok('2³×3²×5', pf); ok('5 x 2^3 x 3^2', pf); ok('2*2*2*3*3*5', pf); no('360', pf); no('8 × 45', pf); no('2^3 × 3 × 5', pf); no('2^3 × 9 × 5', pf);
 // vectors and unicode fractions
 const vh = { kind: 'expr', expr: '(a+b)/2', vars: ['a', 'b'] };
 ok('½(a+b)', vh); ok('1/2(a+b)', vh); ok('0.5a + 0.5b', vh); no('a+b', vh); ok('¾', { kind: 'number', value: 0.75 });

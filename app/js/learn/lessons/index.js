@@ -31,10 +31,16 @@ import iteration from './iteration.js';
 import recurring from './recurring.js';
 import circleTheorems from './circle-theorems.js';
 import vectors from './vectors.js';
+import compoundMeasures from './compound-measures.js';
+import anglesPolygons from './angles-polygons.js';
+import numberSkills from './number-skills.js';
+import circleEquation from './circle-equation.js';
+import graphs from './graphs.js';
 import examTechnique from './exam-technique.js';
 
 export const LESSONS = [
   { group: 'extra', lesson: examTechnique },
+  { group: 'core', lesson: numberSkills },
   { group: 'core', lesson: expandFactorise },
   { group: 'core', lesson: quadratics },
   { group: 'core', lesson: indices },
@@ -47,6 +53,8 @@ export const LESSONS = [
   { group: 'core', lesson: proportion },
   { group: 'core', lesson: ratio },
   { group: 'core', lesson: standardForm },
+  { group: 'core', lesson: compoundMeasures },
+  { group: 'core', lesson: anglesPolygons },
   { group: 'core', lesson: pythagTrig },
   { group: 'core', lesson: circlesVolume },
   { group: 'core', lesson: probability },
@@ -61,9 +69,11 @@ export const LESSONS = [
   { group: 'push', lesson: surds },
   { group: 'push', lesson: bounds },
   { group: 'push', lesson: circleTheorems },
+  { group: 'push', lesson: circleEquation },
   { group: 'push', lesson: sineCosine },
   { group: 'push', lesson: similarity },
   { group: 'push', lesson: vectors },
+  { group: 'push', lesson: graphs },
   { group: 'push', lesson: histograms },
 ].map(({ group, lesson }) => ({ ...lesson, group }));
 

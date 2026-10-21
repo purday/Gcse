@@ -9,13 +9,13 @@ The file contract between them is [`FORMAT.md`](FORMAT.md).
 
 ### Learn mode (built into the player, works offline)
 
-The **Learn** tab teaches as well as tests. It has 31 step-by-step lessons covering the Higher topics that carry the most marks: 17 grade 6 core lessons, 13 grade 7–8 lessons and one on exam technique. Each lesson goes: why it matters → explanation → worked examples revealed one step at a time → "your turn" questions → practice → an exam-style question with AQA mark codes → summary and common mistakes.
+The **Learn** tab teaches as well as tests. It has 36 step-by-step lessons covering the Higher topics that carry the most marks: 20 grade 6 core lessons, 15 grade 7–8 lessons and one on exam technique. Each lesson goes: why it matters → explanation → worked examples revealed one step at a time → "your turn" questions → practice → an exam-style question with AQA mark codes → summary and common mistakes.
 
 - **Instant marking** of typed answers: numbers, fractions, algebra (checks the answer is equivalent *and* in the form asked, e.g. factorised or fully simplified), coordinates, inequalities, surds, π, ratios, standard form, multi-part answers and multiple choice.
 - **Help when stuck**: hints one at a time, then "Show me step by step" after two wrong tries, then "Try another like this" with fresh numbers. Every question is generated from a template, so there is no limit on practice.
 - **Retry queue**: anything not right first time comes back the next day with new numbers, then 3 days later; two clean retries clear it.
 - **Daily plan** counting down to Paper 1: retries, spaced-repetition review, the next lessons (topics he dropped marks on first, then grade 6 core, then grade 7–8; non-calculator first before Paper 1), a full paper every few days, and must-know flashcards (formulas AQA does not give).
-- Exam-style **diagrams** (triangles, circles, sectors, solids, histograms, box plots, tree and Venn diagrams, vectors) are drawn from each question's own numbers.
+- Exam-style **diagrams** (triangles, circles, sectors, solids, parallel lines, polygons, graphs, histograms, box plots, tree and Venn diagrams, vectors) are drawn from each question's own numbers.
 - Results go into `progress.json` like tutor marking, so the heatmap, spaced review and the tutor all see them.
 
 Lessons live in `app/js/learn/lessons/`. `tests/learn_content.mjs` generates 300 questions from every template and checks each one: the model answer is accepted, plausible wrong answers are rejected, all maths renders in KaTeX, and the template's own consistency check passes.
@@ -52,7 +52,7 @@ samples/              sample lesson, feedback (+ next lesson) and timed packs
 
 ```bash
 npm install && pip install -r requirements.txt   # the SessionStart hook does this on Claude Code web
-npm test               # converter test, Learn checks (~55,000 generated questions), full end-to-end loop in Chromium
+npm test               # converter test, Learn checks (~65,000 generated questions), full end-to-end loop in Chromium
 npm run test:library   # also opens every real library paper in the player and checks it totals 80
 npm run lint
 npm run library        # download -> convert -> question bank -> encrypt -> validate -> tutor docs

@@ -126,29 +126,40 @@ export function numberLine({ min, max, lo = null, loInc = false, hi = null, hiIn
 }
 
 // Coordinate grid with optional straight lines y = mx + c, a curve f(x) and labelled points.
-export function grid({ xmin = -5, xmax = 5, ymin = -5, ymax = 5, lines = [], curve = null, points = [], w = 320, h = 320 }) {
+let gridId = 0;
+// curve / curves: functions y = f(x); circles: [{ cx, cy, r }]; paths: [[[x, y], ...]] polylines;
+// step / ystep: label every `step` units on each axis.
+export function grid({ xmin = -5, xmax = 5, ymin = -5, ymax = 5, lines = [], curve = null, curves = [], circles = [], paths = [], points = [], step: labelStep = null, ystep = null, xlabel = 'x', ylabel = 'y', w = 320, h = 320 }) {
+  const clip = `gclip${++gridId}`;
   const X = (v) => 24 + ((v - xmin) / (xmax - xmin)) * (w - 48);
   const Y = (v) => h - 24 - ((v - ymin) / (ymax - ymin)) * (h - 48);
   let body = '';
-  for (let v = Math.ceil(xmin); v <= xmax; v++) body += `<line x1="${X(v)}" y1="${Y(ymin)}" x2="${X(v)}" y2="${Y(ymax)}" stroke="#ccc" stroke-width="1"/>`;
-  for (let v = Math.ceil(ymin); v <= ymax; v++) body += `<line x1="${X(xmin)}" y1="${Y(v)}" x2="${X(xmax)}" y2="${Y(v)}" stroke="#ccc" stroke-width="1"/>`;
+  // Gridlines every unit on small ranges; on big ones (trig: 0–360) every third of a labelled step.
+  const gx = xmax - xmin > 40 ? (labelStep || 30) / 3 : 1;
+  const gy = ymax - ymin > 40 ? (ystep || labelStep || 30) / 3 : ymax - ymin <= 4 ? 0.5 : 1;
+  for (let v = Math.ceil(xmin / gx) * gx; v <= xmax + 1e-9; v += gx) body += `<line x1="${X(v)}" y1="${Y(ymin)}" x2="${X(v)}" y2="${Y(ymax)}" stroke="#ccc" stroke-width="1"/>`;
+  for (let v = Math.ceil(ymin / gy) * gy; v <= ymax + 1e-9; v += gy) body += `<line x1="${X(xmin)}" y1="${Y(v)}" x2="${X(xmax)}" y2="${Y(v)}" stroke="#ccc" stroke-width="1"/>`;
   body += `<line x1="${X(xmin)}" y1="${Y(0)}" x2="${X(xmax)}" y2="${Y(0)}" stroke="#000" stroke-width="1.5"/><line x1="${X(0)}" y1="${Y(ymin)}" x2="${X(0)}" y2="${Y(ymax)}" stroke="#000" stroke-width="1.5"/>`;
-  body += t(X(xmax) - 4, Y(0) - 6, 'x', 'font-style="italic"') + t(X(0) + 6, Y(ymax) + 12, 'y', 'font-style="italic"');
-  const step = Math.max(1, Math.round((xmax - xmin) / 10));
+  body += t(X(xmax) - 4, Y(0) - 6, xlabel, `font-style="italic"${xlabel.length > 1 ? ' font-size="12" text-anchor="end"' : ''}`) + t(X(0) + 6, Y(ymax) + 12, ylabel, `font-style="italic"${ylabel.length > 1 ? ' font-size="12"' : ''}`);
+  const step = labelStep || Math.max(1, Math.round((xmax - xmin) / 10));
   for (let v = Math.ceil(xmin); v <= xmax; v += step) if (v) body += t(X(v), Y(0) + 15, v, 'font-size="11" text-anchor="middle"');
-  for (let v = Math.ceil(ymin); v <= ymax; v += step) if (v) body += t(X(0) - 6, Y(v) + 4, v, 'font-size="11" text-anchor="end"');
-  body += `<clipPath id="g"><rect x="${X(xmin)}" y="${Y(ymax)}" width="${X(xmax) - X(xmin)}" height="${Y(ymin) - Y(ymax)}"/></clipPath><g clip-path="url(#g)">`;
+  for (let v = Math.ceil(ymin); v <= ymax; v += ystep || step) if (v) body += t(X(0) - 6, Y(v) + 4, v, 'font-size="11" text-anchor="end"');
+  body += `<clipPath id="${clip}"><rect x="${X(xmin)}" y="${Y(ymax)}" width="${X(xmax) - X(xmin)}" height="${Y(ymin) - Y(ymax)}"/></clipPath><g clip-path="url(#${clip})">`;
   for (const l of lines) body += `<line x1="${X(xmin)}" y1="${Y(l.m * xmin + l.c)}" x2="${X(xmax)}" y2="${Y(l.m * xmax + l.c)}" stroke="#000" stroke-width="2"/>`;
-  if (curve) {
-    let d = '';
-    for (let i = 0; i <= 200; i++) {
-      const xv = xmin + ((xmax - xmin) * i) / 200;
-      const yv = curve(xv);
-      if (!Number.isFinite(yv)) continue;
-      d += `${d ? 'L' : 'M'}${X(xv).toFixed(1)} ${Y(Math.max(ymin - 50, Math.min(ymax + 50, yv))).toFixed(1)} `;
+  for (const f of [curve, ...curves].filter(Boolean)) {
+    let d = ''; let prev = null; const span = ymax - ymin;
+    for (let i = 0; i <= 400; i++) {
+      const xv = xmin + ((xmax - xmin) * i) / 400;
+      const yv = f(xv);
+      // Lift the pen across asymptotes (1/x) instead of joining +∞ to −∞.
+      if (!Number.isFinite(yv) || (prev != null && Math.abs(yv - prev) > span * 2)) { prev = Number.isFinite(yv) ? yv : null; if (Number.isFinite(yv)) d += `M${X(xv).toFixed(1)} ${Y(Math.max(ymin - span, Math.min(ymax + span, yv))).toFixed(1)} `; continue; }
+      d += `${d && prev != null ? 'L' : 'M'}${X(xv).toFixed(1)} ${Y(Math.max(ymin - span, Math.min(ymax + span, yv))).toFixed(1)} `;
+      prev = yv;
     }
     body += `<path d="${d}" fill="none" stroke="#000" stroke-width="2"/>`;
   }
+  for (const pts of paths) body += `<polyline points="${pts.map(([a, b]) => `${X(a).toFixed(1)},${Y(b).toFixed(1)}`).join(' ')}" fill="none" stroke="#000" stroke-width="2"/>`;
+  for (const c of circles) body += `<ellipse cx="${X(c.cx)}" cy="${Y(c.cy)}" rx="${(X(c.r) - X(0)).toFixed(1)}" ry="${(Y(0) - Y(c.r)).toFixed(1)}" fill="none" stroke="#000" stroke-width="2"/>`;
   body += '</g>';
   for (const p of points) body += `<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="3.5" fill="#000"/>` + (p.label ? t(X(p.x) + 6, Y(p.y) - 6, p.label, 'font-size="13"') : '');
   return wrap(w, h, body, false);
@@ -312,4 +323,37 @@ export function vectorFig({ pts, arrows = [], segs = [], dots = [], w = 300, h =
     body += t(x + (dx / L) * 15 - 5, y + (dy / L) * 15 + 5, k, 'font-style="italic"');
   }
   return wrap(w, h, body, true);
+}
+
+// Polygons from point lists, named points and marked angles (same angle style as circleFig).
+// polygons: [[[x, y], ...]]; names: { P: [x, y] }; angles: [{ at: [x, y], from: [x, y], to: [x, y], label }]
+export function shapesFig({ polygons = [], names = {}, angles = [], note = true, w = 300, h = 230 }) {
+  // A name is [x, y] (placed away from the middle) or { at, toward: [dx, dy], dist } to place it by hand.
+  const spot = (v) => (Array.isArray(v) ? v : v.at);
+  const all = [...polygons.flat(), ...Object.values(names).map(spot)];
+  const map = fit(all, w, h - 14, 30);
+  const cx = all.reduce((a, p) => a + map(p)[0], 0) / all.length; const cy = all.reduce((a, p) => a + map(p)[1], 0) / all.length;
+  let body = '';
+  for (const poly of polygons) body += `<polygon points="${poly.map((p) => map(p).map((v) => v.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="#000" stroke-width="2"/>`;
+  for (const { at, from, to, label, r = 22 } of angles) {
+    const v = map(at); const a = map(from); const b = map(to);
+    const ua = [(a[0] - v[0]), (a[1] - v[1])]; const ub = [(b[0] - v[0]), (b[1] - v[1])];
+    const la = Math.hypot(...ua); const lb = Math.hypot(...ub); ua[0] /= la; ua[1] /= la; ub[0] /= lb; ub[1] /= lb;
+    const cross = ua[0] * ub[1] - ua[1] * ub[0]; const dot = ua[0] * ub[0] + ua[1] * ub[1];
+    // Sweep from `from` to `to` anticlockwise on screen; large-arc when that sweep exceeds 180°.
+    const sweepAng = Math.atan2(cross, dot); const big = sweepAng < 0 ? 1 : 0;
+    const s1 = [v[0] + ua[0] * r, v[1] + ua[1] * r]; const s2 = [v[0] + ub[0] * r, v[1] + ub[1] * r];
+    body += `<path d="M ${s1[0].toFixed(1)} ${s1[1].toFixed(1)} A ${r} ${r} 0 ${big} 1 ${s2[0].toFixed(1)} ${s2[1].toFixed(1)}" fill="none" stroke="#000" stroke-width="1.4"/>`;
+    let bis = [ua[0] + ub[0], ua[1] + ub[1]]; if (big) bis = [-bis[0], -bis[1]];
+    const lbis = Math.hypot(...bis) || 1;
+    body += t(v[0] + (bis[0] / lbis) * (r + 14), v[1] + (bis[1] / lbis) * (r + 14) + 5, label, 'font-size="14" text-anchor="middle"');
+  }
+  for (const [k, v] of Object.entries(names)) {
+    const [x, y] = map(spot(v));
+    // `toward` is in the figure's own axes (y up), so flip y for the screen.
+    const [dx, dy] = Array.isArray(v) ? [x - cx, y - cy] : [v.toward[0], -v.toward[1]];
+    const L = Math.hypot(dx, dy) || 1; const d = Array.isArray(v) ? 15 : v.dist ?? 15;
+    body += t(x + (dx / L) * d - 5, y + (dy / L) * d + 5, k, 'font-style="italic"');
+  }
+  return wrap(w, h, body, note);
 }

@@ -7,13 +7,14 @@
 //   numbers   { values, dp?, tol? }              several numbers in any order (e.g. roots)
 //   fraction  { num, den, simplest?: true }      exact fraction; mixed numbers accepted
 //   expr      { expr, vars?, form? }             algebra: form 'expanded' | 'factorised' | 'simplified' | 'single' | 'cancelled' | 'fraction'
-//   equation  { lhsVar, expr, vars }             "t = ..." (rearranging): expr in the other variables
+//   equation  { lhsVar, expr, vars, anyForm? }   "t = ..." (rearranging); anyForm also accepts any rearrangement, e.g. 3x + 4y = 25
 //   stdform   { value, sf? }                     a × 10^n with 1 ≤ a < 10
 //   ratio     { parts, simplest?: true }
 //   coord     { x, y, tol? }
 //   inequality{ v, lo?, loInc?, hi?, hiInc? }
 //   surd      { value, form? }                   value of a surd expression; form 'k√n' requires simplest surd
 //   choice    { options, correct }
+//   primes    { n }                               n written as a product of primes, e.g. 2^3 × 3 × 5
 //   text      { accept: [regex strings] }
 //   multi     { parts: [{ label, spec }] }
 
@@ -173,9 +174,34 @@ function checkExpr(input, spec) {
   return { ok: true };
 }
 
+// Any rearrangement of the same equation, e.g. 3x + 4y = 25 for y = (25 - 3x)/4: L − R must be
+// a constant non-zero multiple of lhsVar − expr at every test point.
+function sameEquation(L, R, spec) {
+  const target = tryParse(spec.expr); const names = spec.vars || ['x'];
+  const pts = [[0.37, 1.9], [-2.3, 3.7], [5.13, -0.81], [2.6, 1.27], [-1.4, -2.2]];
+  let k = null;
+  for (const [a, b] of pts) {
+    const env = Object.fromEntries(names.map((n, i) => [n, i === 0 ? a : a * 0.7 + i]));
+    env[spec.lhsVar] = b;
+    let num; let den;
+    try { num = evaluate(L, env) - evaluate(R, env); den = env[spec.lhsVar] - evaluate(target, env); } catch { return false; }
+    if (!Number.isFinite(num) || !Number.isFinite(den) || Math.abs(den) < 1e-9) continue;
+    const ratio = num / den;
+    if (Math.abs(ratio) < 1e-9) return false;
+    if (k == null) k = ratio; else if (Math.abs(ratio - k) > 1e-6 * Math.max(1, Math.abs(k))) return false;
+  }
+  return k != null;
+}
+
 function checkEquation(input, spec) {
   const s = clean(input);
   const m = s.match(new RegExp(`^\\s*${spec.lhsVar}\\s*=\\s*(.+)$`, 'i'));
+  if (!m && s.includes('=') && spec.anyForm) {
+    const [l, r] = s.split('=');
+    const L = tryParse(l); const R = tryParse(r);
+    if (!L || !R) return { ok: false, msg: `Write it as ${spec.lhsVar} = …` };
+    return { ok: sameEquation(L, R, spec) };
+  }
   const rhs = m ? m[1] : s;
   const tree = tryParse(rhs);
   if (!tree) return { ok: false, msg: `Write it as ${spec.lhsVar} = …` };
@@ -282,6 +308,22 @@ function checkSurd(input, spec) {
 }
 
 // Exact answer in terms of π: e.g. 36π, 9π/2, 4.5pi
+function checkPrimes(input, spec) {
+  const t = normalise(clean(input)).replace(/\s+/g, '').replace(/[x×·.]/gi, '*');
+  if (!t) return { ok: false };
+  const isPrime = (k) => { if (k < 2) return false; for (let d = 2; d * d <= k; d++) if (k % d === 0) return false; return true; };
+  let prod = 1;
+  for (const f of t.split('*')) {
+    const m = f.match(/^\(?(\d+)\)?(?:\^\(?(\d+)\)?)?$/);
+    if (!m) return { ok: false, msg: 'Write it like 2^3 × 3 × 5 (use ^ for powers).' };
+    const base = Number(m[1]); const e = m[2] ? Number(m[2]) : 1;
+    if (!isPrime(base)) return { ok: false, msg: `${base} is not prime: break it down further.` };
+    prod *= base ** e;
+  }
+  if (prod !== spec.n) return { ok: false, msg: prod === 1 ? undefined : `That multiplies to ${prod}, not ${spec.n}.` };
+  return { ok: true };
+}
+
 function checkPi(input, spec) {
   const t = stripUnits(stripLhs(input));
   if (!/π|pi/i.test(t)) {
@@ -312,6 +354,7 @@ export function check(input, spec) {
     case 'inequality': return checkInequality(input, spec);
     case 'surd': return checkSurd(input, spec);
     case 'pi': return checkPi(input, spec);
+    case 'primes': return checkPrimes(input, spec);
     case 'choice': return { ok: Number(input) === spec.correct };
     case 'text': return checkText(input, spec);
     case 'multi': {
