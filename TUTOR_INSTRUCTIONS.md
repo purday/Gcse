@@ -26,6 +26,8 @@ Higher grade boundaries (out of 240) are in `reference/exam.json`. Per paper (ou
 
 Use **June 2026** as the default comparison (the most recent and the toughest), and give the range across all four series.
 
+**The app also teaches.** Its **Learn** tab has 31 built-in step-by-step lessons (listed in section 5.6): explanation, worked examples revealed one step at a time, then instantly marked practice with hints, full worked solutions, "try another like this", and an exam-style question with mark codes. Anything he gets wrong goes into a **retry queue** that brings the same skill back with new numbers the next day and again 3 days later. Learn mode also has spaced review, mixed practice, must-know flashcards and a daily plan aimed at 4 November. Every Learn question he answers is written to `markLog` with `packId: "learn"` and counts towards topic mastery just like your marking (full marks only when he got it right first time with no hint).
+
 ## 2. Non-negotiable rules
 
 1. **Always use code execution** to open zips and to build zips. Never type zip contents into the chat and never describe a pack instead of making it. Start every chat that involves a zip by writing the helper module in section 7 to `/tmp/gcse_tutor.py` and importing it (`import sys; sys.path.insert(0, "/tmp"); import gcse_tutor as T`).
@@ -58,6 +60,7 @@ When he uploads `results_<packId>_<date>.zip` (usually with "Mark this"):
 import sys; sys.path.insert(0, "/tmp"); import gcse_tutor as T
 R = T.load_results("/mnt/user-data/uploads/<file>.zip")   # find the path with os.listdir if needed
 m, qs, res, ms, prog = R["manifest"], R["questions"], R["results"], R["markscheme"], R["progress"]
+L = T.learn_summary(prog)   # his Learn-mode work in the last 7 days: lessons done, first-time accuracy per topic, open retries
 qb, tm, exam = R["reference"]["questionbank"], R["reference"]["topicmap"], R["reference"]["exam"]
 codes = {t["code"] for t in R["reference"]["topics"]["topics"]}
 print(m["title"], m["type"], res["submitReason"], res["activeSecs"]//60, "min")
@@ -115,7 +118,7 @@ prog2 = T.apply_marking(prog, fb, m, res)   # scores, grade estimates, mistakes,
 `apply_marking` adds a `markLog` entry per question and a `verdicts` entry per topic, then recomputes every topic with the rule in FORMAT.md 4.3: one practice per topic per day; a topic is **secure (green) only after correct answers on 3 different days**; spaced-repetition reviews are due **1, 3 and 7 days** after correct practice; a day that is not correct resets it to a 1-day review; a `"weak"` verdict makes it red. Never edit `topics` by hand except `note`. Also:
 
 - When he gets a topic fully right that has open mistakes, call `T.resolve_mistakes(prog2, code)`.
-- Keep `sessions` and `attempts` exactly as they came (the player owns them).
+- Keep `sessions`, `attempts`, `retryQueue`, `learnProgress` and the `packId: "learn"` entries in `markLog` exactly as they came (the player owns them). `apply_marking` already does this.
 - Update `plan` (`phase`, next full paper date, focus topics) and use `notes` for anything you need next time. They are your only memory.
 - When a lesson uses bank questions, call `T.record_bank_use(prog2, ids, next_pack_id)`.
 
@@ -136,6 +139,7 @@ print(T.save(fb_zip, f"feedback_{m['packId']}.zip"))
 **3 wins:** … · … · …
 **3 fixes:** … · … · …
 **Next session:** <title>: <what and why, one line>
+**In the app:** <the 1–2 Learn lessons to do before the next session, by title, and "clear your retry queue" if `L["openRetries"]` is not empty>
 **On track?** <one honest sentence against grade 6, and against 7–8>
 Download the zip above, open the app, tap **Import pack**, then **Start next lesson**.
 ```
@@ -156,6 +160,7 @@ Keep it under about 12 lines. Encouraging, specific and honest. If he is behind,
 | `exam-week` | 5 Nov → 8 Nov | Short calculator-paper review lessons before Paper 2 and Paper 3 from his mistake log. No new topics. |
 
 - **A full timed real paper every 4–5 days** in `secure-6` and `push-7-8` (check the last date in `realPapersUsed`). In `final-papers`, a paper on most days, alternating with review.
+- **Use Learn for teaching.** When a red or amber topic has a built-in Learn lesson (section 5.6) that he has not completed (`L["lessonsCompleted"]`), tell him to do that lesson in the app rather than building a teaching lesson yourself. Spend your packs on what the app cannot give him: **real AQA questions** on those topics, full papers, and examiner feedback on his written working. If `L["byTopic"]` shows low first-time accuracy on a topic, treat it like an amber topic.
 - If he has not sat any full paper yet, make the next session a full real paper so you have a baseline.
 - One session is about 2 hours: either one full paper (90 min), or one lesson of **35–50 marks**. If he asks for two shorter sessions, make lessons of about 20–25 marks.
 
@@ -196,6 +201,44 @@ T.assert_ok(next_bytes, codes)
 ```
 
 Use a new `packId` every time. For a non-calculator lesson set `calculator: false` and make sure every question is answerable without one.
+
+### 5.6 The app's built-in Learn lessons
+
+He opens these from the **Learn** tab (or from a topic on the Progress heatmap, or from "Learn what you dropped" on a feedback page). Refer to them by title.
+
+| Lesson | Group | Spec topics | Paper |
+|---|---|---|---|
+| Exam technique: picking up every mark | Technique | A1 | either |
+| Expanding and factorising | Grade 6 core | A4 | non-calculator |
+| Solving quadratic equations | Grade 6 core | A18, A4 | either |
+| Laws of indices: negative and fractional powers | Grade 6 core | N7, A4 | non-calculator |
+| Simultaneous equations | Grade 6 core | A19, A21 | non-calculator |
+| Changing the subject of a formula | Grade 6 core | A5 | non-calculator |
+| Inequalities | Grade 6 core | A22 | non-calculator |
+| Straight-line graphs | Grade 6 core | A9, A10 | non-calculator |
+| Sequences and the nth term | Grade 6 core | A25, A24, A23 | non-calculator |
+| Percentages, reverse percentages and compound interest | Grade 6 core | R9, R16 | either |
+| Direct and inverse proportion | Grade 6 core | R10, R13, R7 | either |
+| Ratio problems | Grade 6 core | R5, R4, R6, N11, R8 | non-calculator |
+| Standard form | Grade 6 core | N9 | either |
+| Pythagoras and right-angled trigonometry | Grade 6 core | G20, G21 | either |
+| Circles, sectors and volumes | Grade 6 core | G17, G18, G16 | either |
+| Probability: the essentials | Grade 6 core | P4, P2, P3, P6, P1, P7 | either |
+| Tree diagrams and combined events | Grade 6 core | P8, P9, P7 | either |
+| Averages, spread and box plots | Grade 6 core | S4, S5, S2 | calculator |
+| Completing the square | Grade 7–8 | A11, A18 | non-calculator |
+| Functions: composite and inverse | Grade 7–8 | A7 | non-calculator |
+| Algebraic fractions | Grade 7–8 | A4 | non-calculator |
+| Algebraic proof | Grade 7–8 | A6 | non-calculator |
+| Iteration | Grade 7–8 | A20 | calculator |
+| Recurring decimals to fractions | Grade 7–8 | N10 | non-calculator |
+| Surds | Grade 7–8 | N8 | non-calculator |
+| Error intervals and bounds | Grade 7–8 | N15, N16 | calculator |
+| Circle theorems | Grade 7–8 | G10 | non-calculator |
+| Sine rule, cosine rule and area of a triangle | Grade 7–8 | G22, G23 | calculator |
+| Similar shapes: lengths, areas and volumes | Grade 7–8 | G19, R12, G7 | either |
+| Vectors | Grade 7–8 | G25, G24 | non-calculator |
+| Histograms and cumulative frequency | Grade 7–8 | S3 | either |
 
 ## 6. Other situations
 
@@ -627,6 +670,33 @@ def resolve_mistakes(progress: dict, topic: str, day: str | None = None):
 def due_topics(progress: dict, day: str | None = None) -> list:
     day = day or today()
     return sorted([(c, t) for c, t in progress.get("topics", {}).items() if t.get("nextDue") and t["nextDue"] <= day], key=lambda x: x[1]["nextDue"])
+
+
+def learn_summary(progress: dict, days: int = 7, day: str | None = None) -> dict:
+    """What he did in the app's Learn mode in the last `days` days.
+
+    Learn questions are in markLog with packId "learn"; awarded == max means right first time
+    with no hint. retryQueue holds skills he got wrong; learnProgress which lessons he finished.
+    """
+    day = day or today()
+    since = add_days(day, -days)
+    recent = [e for e in progress.get("markLog", []) if e.get("packId") == "learn" and e.get("date", "") > since]
+    by_topic = {}
+    for e in recent:
+        for code in e.get("topics", []):
+            t = by_topic.setdefault(code, {"questions": 0, "firstTime": 0})
+            t["questions"] += 1
+            t["firstTime"] += 1 if e.get("max") and e.get("awarded", 0) >= e["max"] else 0
+    lp = progress.get("learnProgress", {}) or {}
+    return {
+        "since": since,
+        "questions": len(recent),
+        "firstTime": sum(1 for e in recent if e.get("max") and e.get("awarded", 0) >= e["max"]),
+        "byTopic": dict(sorted(by_topic.items(), key=lambda kv: kv[1]["firstTime"] / kv[1]["questions"])),
+        "lessonsCompleted": sorted([k for k, v in lp.items() if v.get("completed")]),
+        "lessonsInProgress": sorted([k for k, v in lp.items() if v.get("step") and not v.get("completed")]),
+        "openRetries": [{k: r.get(k) for k in ("skill", "topic", "misses", "due")} for r in progress.get("retryQueue", []) if not r.get("cleared")],
+    }
 
 
 def days_to_exam(exam: dict, day: str | None = None) -> dict:
@@ -1142,6 +1212,12 @@ One JSON object holds his whole study history. The player keeps it in IndexedDB,
   "attempts": [
     { "id": "a-1759512345678", "packId": "L-2026-10-03-quadratics", "attemptNo": 1, "startedAt": "…", "submittedAt": "…", "submitReason": "finished" }
   ],
+  "retryQueue": [
+    { "id": "quadratics/nonMonic", "lessonId": "quadratics", "templateId": "nonMonic", "topic": "A18", "skill": "Factorising ax² + bx + c", "added": "2026-10-03", "due": "2026-10-04", "stage": 0, "misses": 1, "cleared": false }
+  ],
+  "learnProgress": {
+    "quadratics": { "step": 9, "completed": true, "completedAt": "2026-10-03T19:12:00+01:00", "practice": { "clean": 4, "total": 5, "date": "2026-10-03" }, "updatedAt": "2026-10-03T19:12:00+01:00" }
+  },
   "notes": "Free text the tutor keeps for itself."
 }
 ```
@@ -1162,12 +1238,16 @@ One JSON object holds his whole study history. The player keeps it in IndexedDB,
 | `bankQuestionsUsed` | tutor | `{ "id": "<question bank id>", "packId", "date" }` for every real question reused in a lesson, so the tutor does not repeat them. |
 | `plan`, `notes`, `student` | tutor | Free-form objects/text. |
 | `sessions`, `attempts` | player | Append-only logs the player writes. The tutor copies them through unchanged. |
+| `markLog` from Learn mode | player | Every question answered in the app's built-in Learn lessons adds an entry with `packId: "learn"`, `id` = `learn:<lessonId>:<templateId>:<seed>`, `questionId` = `<lessonId>/<templateId>`, and `source` = `"lesson"`, `"retry"`, `"review"` or `"mix"`. `awarded` is full marks only when he got it right **first time with no hint and no worked solution**, otherwise 0. These count towards topic mastery (4.3) exactly like tutor-marked questions. |
+| `retryQueue` | player | Skills he got wrong in Learn mode. `id` = `<lessonId>/<templateId>`. A wrong answer sets `stage: 0` and `due` = next day; a clean retry moves it to `stage: 1` (due 3 days later); a second clean retry sets `cleared: true` (entries are never deleted). The tutor copies it through unchanged. |
+| `learnProgress` | player | Per built-in lesson: `step` reached, `completed`, `completedAt`, last practice score. The tutor copies it through unchanged. |
 
 ##### 4.2 How the player merges a `progress.json` from a feedback pack
 
 1. If `updatedAt` is **newer than the local copy**, the incoming file replaces the local progress.
 2. If it is older than the local copy but newer than the last tutor copy the player accepted, the incoming **tutor-owned** sections (`topics`, `gradeEstimates`, `plan`, `notes`, `student`) still replace the local ones. This covers him studying between sending results and getting feedback.
 3. In both cases the arrays `scores`, `mistakes`, `realPapersUsed`, `bankQuestionsUsed`, `gradeEstimates`, `markLog`, `verdicts`, `sessions` and `attempts` are merged by `id` afterwards, so nothing recorded on the device is lost. On an `id` clash the incoming entry wins. `topics` is then recomputed from the merged `markLog` (4.3), so two markings made from different snapshots never overwrite each other.
+   `retryQueue` is merged by `id` and `learnProgress` by lesson, but here the **device's** copy wins on a clash: Learn mode is his live state on the device.
 4. Otherwise the file is ignored.
 
 When a feedback pack has **no** `progress.json`, the player updates progress itself from `feedback.json`: it adds the score, grade estimate, mistakes, `markLog` and `verdicts` entries, then recomputes `topics`.

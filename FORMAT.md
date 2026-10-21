@@ -389,6 +389,12 @@ One JSON object holds his whole study history. The player keeps it in IndexedDB,
   "attempts": [
     { "id": "a-1759512345678", "packId": "L-2026-10-03-quadratics", "attemptNo": 1, "startedAt": "…", "submittedAt": "…", "submitReason": "finished" }
   ],
+  "retryQueue": [
+    { "id": "quadratics/nonMonic", "lessonId": "quadratics", "templateId": "nonMonic", "topic": "A18", "skill": "Factorising ax² + bx + c", "added": "2026-10-03", "due": "2026-10-04", "stage": 0, "misses": 1, "cleared": false }
+  ],
+  "learnProgress": {
+    "quadratics": { "step": 9, "completed": true, "completedAt": "2026-10-03T19:12:00+01:00", "practice": { "clean": 4, "total": 5, "date": "2026-10-03" }, "updatedAt": "2026-10-03T19:12:00+01:00" }
+  },
   "notes": "Free text the tutor keeps for itself."
 }
 ```
@@ -409,12 +415,16 @@ One JSON object holds his whole study history. The player keeps it in IndexedDB,
 | `bankQuestionsUsed` | tutor | `{ "id": "<question bank id>", "packId", "date" }` for every real question reused in a lesson, so the tutor does not repeat them. |
 | `plan`, `notes`, `student` | tutor | Free-form objects/text. |
 | `sessions`, `attempts` | player | Append-only logs the player writes. The tutor copies them through unchanged. |
+| `markLog` from Learn mode | player | Every question answered in the app's built-in Learn lessons adds an entry with `packId: "learn"`, `id` = `learn:<lessonId>:<templateId>:<seed>`, `questionId` = `<lessonId>/<templateId>`, and `source` = `"lesson"`, `"retry"`, `"review"` or `"mix"`. `awarded` is full marks only when he got it right **first time with no hint and no worked solution**, otherwise 0. These count towards topic mastery (4.3) exactly like tutor-marked questions. |
+| `retryQueue` | player | Skills he got wrong in Learn mode. `id` = `<lessonId>/<templateId>`. A wrong answer sets `stage: 0` and `due` = next day; a clean retry moves it to `stage: 1` (due 3 days later); a second clean retry sets `cleared: true` (entries are never deleted). The tutor copies it through unchanged. |
+| `learnProgress` | player | Per built-in lesson: `step` reached, `completed`, `completedAt`, last practice score. The tutor copies it through unchanged. |
 
 ### 4.2 How the player merges a `progress.json` from a feedback pack
 
 1. If `updatedAt` is **newer than the local copy**, the incoming file replaces the local progress.
 2. If it is older than the local copy but newer than the last tutor copy the player accepted, the incoming **tutor-owned** sections (`topics`, `gradeEstimates`, `plan`, `notes`, `student`) still replace the local ones. This covers him studying between sending results and getting feedback.
 3. In both cases the arrays `scores`, `mistakes`, `realPapersUsed`, `bankQuestionsUsed`, `gradeEstimates`, `markLog`, `verdicts`, `sessions` and `attempts` are merged by `id` afterwards, so nothing recorded on the device is lost. On an `id` clash the incoming entry wins. `topics` is then recomputed from the merged `markLog` (4.3), so two markings made from different snapshots never overwrite each other.
+   `retryQueue` is merged by `id` and `learnProgress` by lesson, but here the **device's** copy wins on a clash: Learn mode is his live state on the device.
 4. Otherwise the file is ignored.
 
 When a feedback pack has **no** `progress.json`, the player updates progress itself from `feedback.json`: it adds the score, grade estimate, mistakes, `markLog` and `verdicts` entries, then recomputes `topics`.

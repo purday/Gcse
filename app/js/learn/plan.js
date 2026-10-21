@@ -9,6 +9,18 @@ export function lessonForTopic(lessons, code) {
   return lessons.find((l) => l.topics[0] === code) || lessons.find((l) => l.topics.includes(code));
 }
 
+// Which lesson to learn next: topics he is dropping marks on (red, then amber) first,
+// then grade 6 core before the grade 7–8 push, then (before Paper 1) non-calculator lessons.
+export function orderLessons(list, p, days) {
+  const rank = (l) => {
+    const st = l.topics.map((c) => p.topics?.[c]?.status);
+    return st.includes('red') ? 0 : st.includes('amber') ? 1 : 2;
+  };
+  const key = (l, i) => [rank(l), l.group === 'push' ? 1 : 0, days > 0 && l.calc === 'calc' ? 1 : 0, i];
+  const cmp = (a, b) => { for (let k = 0; k < a.length; k++) if (a[k] !== b[k]) return a[k] - b[k]; return 0; };
+  return list.map((l, i) => ({ l, k: key(l, i) })).sort((x, y) => cmp(x.k, y.k)).map((x) => x.l);
+}
+
 export function buildPlan({ p, lessons, exam, today = todayISO() }) {
   const papers = exam.exam.papers;
   const p1 = papers[0];
@@ -35,8 +47,7 @@ export function buildPlan({ p, lessons, exam, today = todayISO() }) {
   const lp = p.learnProgress || {};
   const doneToday = lessons.filter((l) => lp[l.id]?.completedAt?.slice(0, 10) === today);
   const notDone = lessons.filter((l) => !lp[l.id]?.completed && !l.extra);
-  // Before Paper 1 (non-calculator), lessons that can be tested without a calculator come first.
-  const ordered = days > 0 ? [...notDone.filter((l) => l.calc !== 'calc'), ...notDone.filter((l) => l.calc === 'calc')] : notDone;
+  const ordered = orderLessons(notDone, p, days);
   const lastPaper = (p.scores || []).filter((s) => s.type === 'paper').map((s) => s.date).sort().pop();
   const paperDue = !lastPaper || daysBetween(lastPaper, today) >= (days <= 7 ? 1 : 3);
   const paperDay = paperDue && days >= 0;

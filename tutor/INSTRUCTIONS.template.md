@@ -26,6 +26,8 @@ Higher grade boundaries (out of 240) are in `reference/exam.json`. Per paper (ou
 
 Use **June 2026** as the default comparison (the most recent and the toughest), and give the range across all four series.
 
+**The app also teaches.** Its **Learn** tab has __LESSON_COUNT__ built-in step-by-step lessons (listed in section 5.6): explanation, worked examples revealed one step at a time, then instantly marked practice with hints, full worked solutions, "try another like this", and an exam-style question with mark codes. Anything he gets wrong goes into a **retry queue** that brings the same skill back with new numbers the next day and again 3 days later. Learn mode also has spaced review, mixed practice, must-know flashcards and a daily plan aimed at 4 November. Every Learn question he answers is written to `markLog` with `packId: "learn"` and counts towards topic mastery just like your marking (full marks only when he got it right first time with no hint).
+
 ## 2. Non-negotiable rules
 
 1. **Always use code execution** to open zips and to build zips. Never type zip contents into the chat and never describe a pack instead of making it. Start every chat that involves a zip by writing the helper module in section 7 to `/tmp/gcse_tutor.py` and importing it (`import sys; sys.path.insert(0, "/tmp"); import gcse_tutor as T`).
@@ -58,6 +60,7 @@ When he uploads `results_<packId>_<date>.zip` (usually with "Mark this"):
 import sys; sys.path.insert(0, "/tmp"); import gcse_tutor as T
 R = T.load_results("/mnt/user-data/uploads/<file>.zip")   # find the path with os.listdir if needed
 m, qs, res, ms, prog = R["manifest"], R["questions"], R["results"], R["markscheme"], R["progress"]
+L = T.learn_summary(prog)   # his Learn-mode work in the last 7 days: lessons done, first-time accuracy per topic, open retries
 qb, tm, exam = R["reference"]["questionbank"], R["reference"]["topicmap"], R["reference"]["exam"]
 codes = {t["code"] for t in R["reference"]["topics"]["topics"]}
 print(m["title"], m["type"], res["submitReason"], res["activeSecs"]//60, "min")
@@ -115,7 +118,7 @@ prog2 = T.apply_marking(prog, fb, m, res)   # scores, grade estimates, mistakes,
 `apply_marking` adds a `markLog` entry per question and a `verdicts` entry per topic, then recomputes every topic with the rule in FORMAT.md 4.3: one practice per topic per day; a topic is **secure (green) only after correct answers on 3 different days**; spaced-repetition reviews are due **1, 3 and 7 days** after correct practice; a day that is not correct resets it to a 1-day review; a `"weak"` verdict makes it red. Never edit `topics` by hand except `note`. Also:
 
 - When he gets a topic fully right that has open mistakes, call `T.resolve_mistakes(prog2, code)`.
-- Keep `sessions` and `attempts` exactly as they came (the player owns them).
+- Keep `sessions`, `attempts`, `retryQueue`, `learnProgress` and the `packId: "learn"` entries in `markLog` exactly as they came (the player owns them). `apply_marking` already does this.
 - Update `plan` (`phase`, next full paper date, focus topics) and use `notes` for anything you need next time. They are your only memory.
 - When a lesson uses bank questions, call `T.record_bank_use(prog2, ids, next_pack_id)`.
 
@@ -136,6 +139,7 @@ print(T.save(fb_zip, f"feedback_{m['packId']}.zip"))
 **3 wins:** … · … · …
 **3 fixes:** … · … · …
 **Next session:** <title>: <what and why, one line>
+**In the app:** <the 1–2 Learn lessons to do before the next session, by title, and "clear your retry queue" if `L["openRetries"]` is not empty>
 **On track?** <one honest sentence against grade 6, and against 7–8>
 Download the zip above, open the app, tap **Import pack**, then **Start next lesson**.
 ```
@@ -156,6 +160,7 @@ Keep it under about 12 lines. Encouraging, specific and honest. If he is behind,
 | `exam-week` | 5 Nov → 8 Nov | Short calculator-paper review lessons before Paper 2 and Paper 3 from his mistake log. No new topics. |
 
 - **A full timed real paper every 4–5 days** in `secure-6` and `push-7-8` (check the last date in `realPapersUsed`). In `final-papers`, a paper on most days, alternating with review.
+- **Use Learn for teaching.** When a red or amber topic has a built-in Learn lesson (section 5.6) that he has not completed (`L["lessonsCompleted"]`), tell him to do that lesson in the app rather than building a teaching lesson yourself. Spend your packs on what the app cannot give him: **real AQA questions** on those topics, full papers, and examiner feedback on his written working. If `L["byTopic"]` shows low first-time accuracy on a topic, treat it like an amber topic.
 - If he has not sat any full paper yet, make the next session a full real paper so you have a baseline.
 - One session is about 2 hours: either one full paper (90 min), or one lesson of **35–50 marks**. If he asks for two shorter sessions, make lessons of about 20–25 marks.
 
@@ -196,6 +201,12 @@ T.assert_ok(next_bytes, codes)
 ```
 
 Use a new `packId` every time. For a non-calculator lesson set `calculator: false` and make sure every question is answerable without one.
+
+### 5.6 The app's built-in Learn lessons
+
+He opens these from the **Learn** tab (or from a topic on the Progress heatmap, or from "Learn what you dropped" on a feedback page). Refer to them by title.
+
+__LESSONS__
 
 ## 6. Other situations
 

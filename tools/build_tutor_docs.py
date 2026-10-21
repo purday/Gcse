@@ -4,8 +4,10 @@
   tutor/PROJECT_INSTRUCTIONS.md  short text for the Project's instructions box
   tutor/knowledge/               files to upload to the Project knowledge
 """
+import json
 import re
 import shutil
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -15,7 +17,20 @@ fmt = (ROOT / "FORMAT.md").read_text()
 # Demote FORMAT.md headings so they nest under section 8.
 fmt = re.sub(r"^(#{1,4}) ", lambda m: "#" * (len(m.group(1)) + 2) + " ", fmt, flags=re.M)
 helper = (T / "gcse_tutor.py").read_text().rstrip()
-doc = (T / "INSTRUCTIONS.template.md").read_text().replace("__HELPER__", helper).replace("__FORMAT__", fmt)
+
+# The Learn lesson list comes straight from the app so the tutor's copy never drifts.
+lessons = json.loads(subprocess.run(
+    ["node", "--experimental-default-type=module", "-e",
+     "import { LESSONS } from './app/js/learn/lessons/index.js';"
+     "console.log(JSON.stringify(LESSONS.map((l) => ({ id: l.id, title: l.title, group: l.group, band: l.band, topics: l.topics, calc: l.calc }))))"],
+    cwd=ROOT, check=True, capture_output=True, text=True).stdout)
+GROUP = {"core": "Grade 6 core", "push": "Grade 7–8", "extra": "Technique"}
+CALC = {"calc": "calculator", "non-calc": "non-calculator", "both": "either"}
+rows = ["| Lesson | Group | Spec topics | Paper |", "|---|---|---|---|"]
+rows += [f"| {l['title']} | {GROUP.get(l['group'], l['group'])} | {', '.join(l['topics'])} | {CALC.get(l['calc'], l['calc'])} |" for l in lessons]
+
+doc = ((T / "INSTRUCTIONS.template.md").read_text().replace("__HELPER__", helper).replace("__FORMAT__", fmt)
+       .replace("__LESSONS__", "\n".join(rows)).replace("__LESSON_COUNT__", str(len(lessons))))
 (ROOT / "TUTOR_INSTRUCTIONS.md").write_text(doc)
 
 (T / "PROJECT_INSTRUCTIONS.md").write_text(
@@ -25,7 +40,8 @@ doc = (T / "INSTRUCTIONS.template.md").read_text().replace("__HELPER__", helper)
     "to read results zips and build pack zips; treat the progress.json inside the zip he sends as the only source of "
     "truth; mark strictly as an AQA examiner after looking at every working photo; return exactly one feedback zip "
     "(feedback.json + updated progress.json + next/ session) that passes the checker; then give a short summary with "
-    "score, grade estimate, 3 wins, 3 fixes and what the next session covers.\n")
+    "score, grade estimate, 3 wins, 3 fixes, what the next session covers, and which built-in Learn lessons to do "
+    "in the app before it.\n")
 
 kn = T / "knowledge"
 kn.mkdir(exist_ok=True)

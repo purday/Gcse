@@ -416,6 +416,33 @@ def due_topics(progress: dict, day: str | None = None) -> list:
     return sorted([(c, t) for c, t in progress.get("topics", {}).items() if t.get("nextDue") and t["nextDue"] <= day], key=lambda x: x[1]["nextDue"])
 
 
+def learn_summary(progress: dict, days: int = 7, day: str | None = None) -> dict:
+    """What he did in the app's Learn mode in the last `days` days.
+
+    Learn questions are in markLog with packId "learn"; awarded == max means right first time
+    with no hint. retryQueue holds skills he got wrong; learnProgress which lessons he finished.
+    """
+    day = day or today()
+    since = add_days(day, -days)
+    recent = [e for e in progress.get("markLog", []) if e.get("packId") == "learn" and e.get("date", "") > since]
+    by_topic = {}
+    for e in recent:
+        for code in e.get("topics", []):
+            t = by_topic.setdefault(code, {"questions": 0, "firstTime": 0})
+            t["questions"] += 1
+            t["firstTime"] += 1 if e.get("max") and e.get("awarded", 0) >= e["max"] else 0
+    lp = progress.get("learnProgress", {}) or {}
+    return {
+        "since": since,
+        "questions": len(recent),
+        "firstTime": sum(1 for e in recent if e.get("max") and e.get("awarded", 0) >= e["max"]),
+        "byTopic": dict(sorted(by_topic.items(), key=lambda kv: kv[1]["firstTime"] / kv[1]["questions"])),
+        "lessonsCompleted": sorted([k for k, v in lp.items() if v.get("completed")]),
+        "lessonsInProgress": sorted([k for k, v in lp.items() if v.get("step") and not v.get("completed")]),
+        "openRetries": [{k: r.get(k) for k in ("skill", "topic", "misses", "due")} for r in progress.get("retryQueue", []) if not r.get("cleared")],
+    }
+
+
 def days_to_exam(exam: dict, day: str | None = None) -> dict:
     day = day or today()
     return {f"P{p['paper']}": (date.fromisoformat(p["date"]) - date.fromisoformat(day)).days for p in exam["exam"]["papers"]}

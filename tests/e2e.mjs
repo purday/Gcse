@@ -179,6 +179,7 @@ ok((await page.textContent('.grade-num')).trim() === '7', 'grade estimate shown'
 ok((await page.$$('.fb-q')).length === 24, 'per-question marks shown');
 ok((await page.$$('.lost')).length > 0 && (await page.textContent('.lost .chip')).match(/Knowledge gap|Careless/), 'lost-mark reasons with type shown');
 ok((await page.$$('.your-answer .thumb-img')).length === 1, 'his photo shown beside the marks');
+ok((await page.$$('.learn-links a')).length >= 1, 'feedback links to Learn lessons for dropped topics');
 await shot(page, '06-feedback');
 
 step('Start next lesson');
@@ -289,6 +290,89 @@ ok(true, 'library index available offline');
 await ctx.setOffline(false);
 ok(page.errors.length === 0, `no page errors (${page.errors.join(' | ') || 'none'})`);
 await ctx.close();
+
+step('Learn: lesson, instant marking, hints, retry queue');
+{
+  const { ctx: c5, page: p5 } = await newPage();
+  await unlock(p5);
+  ok(!!(await p5.$('.plan-card')), 'Today shows the learning plan card');
+  await p5.click('a[href="#/learn"]');
+  await p5.waitForSelector('.plan-item');
+  ok((await p5.$$('.plan-item')).length >= 4, 'Learn shows today\'s plan');
+  const lessonCount = (await p5.$$('.lesson-list li')).length;
+  ok(lessonCount >= 30, `lesson list (${lessonCount} lessons)`);
+  await shot(p5, '10-learn-home');
+  // The answer the checker should accept, regenerated from the card's seed.
+  const expected = () => p5.evaluate(async () => {
+    const el = document.querySelector('.learn-q');
+    const { BY_ID } = await import('./js/learn/lessons/index.js');
+    const { generate } = await import('./js/learn/question.js');
+    const inst = generate(BY_ID[el.dataset.lesson], el.dataset.template, Number(el.dataset.seed));
+    return { value: inst.a.value, show: inst.show, template: el.dataset.template };
+  });
+  await p5.goto(`${URL}#/learn/ratio`);
+  await p5.waitForSelector('.lesson .why');
+  ok(true, 'lesson opens with why it matters');
+  await p5.click('.lesson-foot >> text="Next"');
+  await p5.waitForSelector('.learn-q');
+  const want = await expected();
+  ok(want.template === 'share' && Number.isFinite(want.value), `try-it question generated (${want.template})`);
+  await p5.fill('#learn-answer', String(want.value + 1));
+  await p5.click('.learn-actions >> text="Check"');
+  await p5.waitForSelector('.fb-result.bad');
+  ok(true, 'wrong answer marked wrong instantly');
+  await p5.click('.learn-actions >> text=/^Hint/');
+  await p5.waitForSelector('.hint');
+  ok(true, 'hint shown');
+  ok(await p5.isVisible('text="Show me step by step"'), 'step-by-step offered after a hint');
+  await p5.fill('#learn-answer', `£${want.value}`);
+  await p5.click('.learn-actions >> text="Check"');
+  await p5.waitForSelector('.fb-result.ok');
+  ok(true, 'right answer accepted (with a £ sign), marked as not first time');
+  await shot(p5, '11-learn-question');
+  await p5.click('.learn-after >> text="Continue"');
+  await p5.waitForSelector('.qcard.example');
+  ok(true, 'continues to the worked example');
+  await p5.click('text="Show the first step"');
+  ok((await p5.$$('.reveal-steps li')).length === 1, 'worked example reveals one step at a time');
+  const prog = await p5.evaluate(async () => (await import('./js/progress.js')).getProgress());
+  const entry = prog.markLog.find((e) => e.id.startsWith('learn:ratio:share:'));
+  ok(entry && entry.awarded === 0 && entry.max === 2 && entry.packId === 'learn', 'attempt recorded in markLog (0 marks: needed a second try)');
+  const rq = prog.retryQueue.find((x) => x.id === 'ratio/share');
+  ok(rq && !rq.cleared && rq.due > entry.date, `wrong answer queued for retry (due ${rq?.due})`);
+  ok(prog.topics.R5?.attempts >= 1, 'topic mastery updated from Learn');
+  ok(prog.learnProgress.ratio?.step >= 2, 'lesson position saved');
+  await p5.goto(`${URL}#/learn`);
+  await p5.waitForSelector('.card.continue');
+  ok((await p5.textContent('.card.continue')).includes('Ratio'), 'Learn home offers Continue lesson');
+  ok((await p5.textContent('.tool[href="#/learn/retry"]')).includes('1 waiting'), 'retry queue shows the waiting question');
+  // Make it due today, then clear it in a retry session.
+  await p5.evaluate(async () => {
+    const m = await import('./js/progress.js');
+    const p = await m.getProgress();
+    for (const x of p.retryQueue) x.due = x.added;
+    await m.saveProgress(p);
+  });
+  await p5.goto(`${URL}#/learn/retry`);
+  await p5.waitForSelector('.learn-q');
+  const again = await expected();
+  ok(again.template === 'share', 'retry session asks the same skill with new numbers');
+  await p5.fill('#learn-answer', String(again.value));
+  await p5.click('.learn-actions >> text="Check"');
+  await p5.waitForSelector('.fb-result.good');
+  const prog2 = await p5.evaluate(async () => (await import('./js/progress.js')).getProgress());
+  const rq2 = prog2.retryQueue.find((x) => x.id === 'ratio/share');
+  ok(rq2.stage === 1 && !rq2.cleared, `one clean retry moves it to stage 1 (due ${rq2.due})`);
+  await p5.goto(`${URL}#/learn/cards`);
+  await p5.waitForSelector('.flash');
+  await p5.click('.flash >> text="Show answer"');
+  ok(await p5.isVisible('.flash-back'), 'must-know fact cards flip');
+  await p5.click('.flash >> text="I knew it"');
+  ok(!!(await p5.waitForFunction(() => document.body.textContent.includes('Card 2 of'), null, { timeout: 5000 }).catch(() => null)), 'next card after rating');
+  await shot(p5, '12-learn-cards');
+  ok(p5.errors.length === 0, `no page errors in Learn (${p5.errors.join(' | ') || 'none'})`);
+  await c5.close();
+}
 
 step('Timed paper auto-submits at zero');
 {

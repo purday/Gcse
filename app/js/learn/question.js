@@ -169,7 +169,8 @@ export function questionCard(opts) {
 
   checkBtn.addEventListener('click', doCheck);
 
-  const card = h('article', { class: `qcard paper learn-q ${exam ? 'exam' : ''}` },
+  // data-* lets the end-to-end test regenerate this exact question.
+  const card = h('article', { class: `qcard paper learn-q ${exam ? 'exam' : ''}`, 'data-lesson': lesson.id, 'data-template': templateId, 'data-seed': String(seed) },
     h('div', { class: 'q-head' },
       label ? h('span', { class: 'qnum mono' }, label) : null,
       h('span', { class: 'q-src' }, exam ? 'Exam-style question' : lesson.templates[templateId].skill || ''),
