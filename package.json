@@ -5,6 +5,7 @@
   "description": "Offline GCSE Maths practice player (AQA 8300 Higher) + pack tooling",
   "scripts": {
     "build": "node tools/build.mjs",
+    "build:single": "node tools/build.mjs && node tools/build_single.mjs",
     "serve": "node tools/serve.mjs app 8080",
     "test": "node tests/run-all.mjs",
     "test:library": "node tests/run-all.mjs --library",
@@ -18,6 +19,7 @@
     "@fontsource/atkinson-hyperlegible-next": "5.3.0",
     "@fontsource/bricolage-grotesque": "5.3.0",
     "@fontsource/ibm-plex-mono": "5.3.0",
+    "esbuild": "0.24.2",
     "jszip": "3.10.1",
     "katex": "0.16.22",
     "marked": "15.0.12",

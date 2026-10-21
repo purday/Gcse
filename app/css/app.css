@@ -331,7 +331,10 @@ body.sitting .topbar, body.sitting .tabbar { display: none; }
 .md { overflow-wrap: anywhere; min-width: 0; }
 .md > * + * { margin-top: 0.7em; }
 .md p { margin: 0; }
-.md table { width: auto; }
+.md table { width: auto; max-width: 100%; display: block; overflow-x: auto; }
+.md th, .md td { overflow-wrap: normal; }
+/* Never change the case of maths: c and C are different letters. */
+.katex { text-transform: none; letter-spacing: normal; }
 .md .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
 .md-img { border: 1px solid var(--line); border-radius: 8px; background: #fff; }
 .img-missing { color: var(--bad); font-size: var(--fs-s); }

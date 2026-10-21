@@ -8,3 +8,5 @@ library_src/
 work/
 test-output/
 .DS_Store
+# Single-file build (npm run build:single)
+dist/

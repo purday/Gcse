@@ -57,6 +57,7 @@ npm run test:library   # also opens every real library paper in the player and c
 npm run lint
 npm run library        # download -> convert -> question bank -> encrypt -> validate -> tutor docs
 npm run build          # regenerate app/sw.js after changing anything in app/
+npm run build:single   # dist/gcse-maths.html: the whole app in one file that opens from disk, no website needed
 npm run serve          # http://localhost:8080
 ```
 
