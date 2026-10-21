@@ -63,6 +63,9 @@ const frac = { kind: 'expr', expr: '2/(x+1)+3/(x-2)', form: 'fraction' };
 ok('(5x-1)/((x+1)(x-2))', frac); ok('(5x - 1)/(x^2 - x - 2)', frac); no('2/(x+1)+3/(x-2)', frac); no('(2(x-2)+3(x+1))/((x+1)(x-2))', frac); no('(5x+1)/((x+1)(x-2))', frac);
 const inv = { kind: 'expr', expr: '(x-5)/3' };
 ok('f^-1(x) = (x-5)/3', inv); ok('f⁻¹(x) = (x - 5)/3', inv); ok('f^(-1)(x)=(x-5)/3', inv); ok('fg(x) = (x-5)/3', inv); ok('y = (x-5)/3', inv); no('(x+5)/3', inv);
+// vectors and unicode fractions
+const vh = { kind: 'expr', expr: '(a+b)/2', vars: ['a', 'b'] };
+ok('½(a+b)', vh); ok('1/2(a+b)', vh); ok('0.5a + 0.5b', vh); no('a+b', vh); ok('¾', { kind: 'number', value: 0.75 });
 // parser details
 t('2x^2 at x=3 is 18', equivalent('2x^2', '18+0x', ['x']) === false && Math.abs(parse('2x^2').t ? 1 : 0) === 1);
 t('-x^2 is -(x^2)', equivalent('-x^2', '0-x*x'));

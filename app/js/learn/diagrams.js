@@ -243,3 +243,73 @@ export function solid({ kind, rLabel = '', hLabel = '', w = 260, h = 220 }) {
   }
   return wrap(w, h, body, true);
 }
+
+// Circle-theorem figure. Points on the circle are given in degrees (anticlockwise from 3 o'clock);
+// other points as [x, y] with the circle's radius as 1. The centre is O at (0, 0).
+// segs: [['A', 'B'], ...]; angles: [{ at, from, to, label }]; right: [{ at, from, to }].
+export function circleFig({ on = {}, off = {}, segs = [], angles = [], right = [], centre = true, note = true, w = 300, h = 250 }) {
+  const P = { O: [0, 0], ...Object.fromEntries(Object.entries(on).map(([k, d]) => [k, [Math.cos((d * Math.PI) / 180), Math.sin((d * Math.PI) / 180)]])), ...off };
+  const all = [[-1, -1], [1, 1], ...Object.values(off)];
+  const map = fit(all, w, h - 14, 26);
+  const S = Object.fromEntries(Object.entries(P).map(([k, p]) => [k, map(p)]));
+  const [cx, cy] = S.O; const R = Math.hypot(map([1, 0])[0] - cx, map([1, 0])[1] - cy);
+  let body = `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${R.toFixed(1)}" fill="none" stroke="#000" stroke-width="2"/>`;
+  for (const [a, b] of segs) body += `<line x1="${S[a][0].toFixed(1)}" y1="${S[a][1].toFixed(1)}" x2="${S[b][0].toFixed(1)}" y2="${S[b][1].toFixed(1)}" stroke="#000" stroke-width="1.8"/>`;
+  if (centre) body += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="2.5" fill="#000"/>`;
+  for (const [k, [x, y]] of Object.entries(S)) {
+    if (k === 'O' && !centre) continue;
+    const dx = x - cx; const dy = y - cy; const L = Math.hypot(dx, dy);
+    let [ox, oy] = L < 1 ? [8, 16] : [(dx / L) * 15, (dy / L) * 15];
+    if (L < 1) {
+      // Put the centre's label on the side away from the lines that leave it.
+      const ends = segs.filter((sg) => sg.includes('O')).map((sg) => S[sg[0] === 'O' ? sg[1] : sg[0]]);
+      const m = ends.reduce((acc, [x2, y2]) => { const l = Math.hypot(x2 - cx, y2 - cy) || 1; return [acc[0] + (x2 - cx) / l, acc[1] + (y2 - cy) / l]; }, [0, 0]);
+      const lm = Math.hypot(...m);
+      if (lm > 0.1) [ox, oy] = [(-m[0] / lm) * 16, (-m[1] / lm) * 16];
+    }
+    body += t(x + ox - 5, y + oy + 5, k, 'font-style="italic"');
+  }
+  const unit = (v, p) => { const d = [S[p][0] - S[v][0], S[p][1] - S[v][1]]; const l = Math.hypot(...d) || 1; return [d[0] / l, d[1] / l]; };
+  for (const { at, from, to, label, r = 22 } of angles) {
+    const v = S[at]; const ua = unit(at, from); const ub = unit(at, to);
+    const s1 = [v[0] + ua[0] * r, v[1] + ua[1] * r]; const s2 = [v[0] + ub[0] * r, v[1] + ub[1] * r];
+    const cross = ua[0] * ub[1] - ua[1] * ub[0];
+    body += `<path d="M ${s1[0].toFixed(1)} ${s1[1].toFixed(1)} A ${r} ${r} 0 0 ${cross > 0 ? 1 : 0} ${s2[0].toFixed(1)} ${s2[1].toFixed(1)}" fill="none" stroke="#000" stroke-width="1.4"/>`;
+    const bis = [ua[0] + ub[0], ua[1] + ub[1]]; const lb = Math.hypot(...bis) || 1;
+    body += t(v[0] + (bis[0] / lb) * (r + 14), v[1] + (bis[1] / lb) * (r + 14) + 5, label, 'font-size="13" text-anchor="middle"');
+  }
+  for (const { at, from, to } of right) {
+    const v = S[at]; const ua = unit(at, from); const ub = unit(at, to); const s = 11;
+    const p1 = [v[0] + ua[0] * s, v[1] + ua[1] * s]; const p3 = [v[0] + ub[0] * s, v[1] + ub[1] * s]; const p2 = [p1[0] + ub[0] * s, p1[1] + ub[1] * s];
+    body += `<polyline points="${[p1, p2, p3].map((p) => p.map((q) => q.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="#000" stroke-width="1.3"/>`;
+  }
+  return wrap(w, h, body, note);
+}
+
+// Vector figure: named points, plain segments, and arrows (arrowhead at the middle, bold label).
+// arrows: [['O', 'A', 'a', at?]] (at = where the arrowhead sits, default halfway); segs: [['A', 'B']]; dots: ['M'] marks a point with a dot.
+export function vectorFig({ pts, arrows = [], segs = [], dots = [], w = 300, h = 220 }) {
+  const map = fit(Object.values(pts), w, h, 30);
+  const S = Object.fromEntries(Object.entries(pts).map(([k, p]) => [k, map(p)]));
+  const cx = Object.values(S).reduce((a, p) => a + p[0], 0) / Object.keys(S).length;
+  const cy = Object.values(S).reduce((a, p) => a + p[1], 0) / Object.keys(S).length;
+  const line = (a, b) => `<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="#000" stroke-width="1.8"/>`;
+  let body = '';
+  for (const [a, b] of segs) body += line(S[a], S[b]);
+  for (const [a, b, label, at = 0.5] of arrows) {
+    const p = S[a]; const q = S[b]; body += line(p, q);
+    const m = [p[0] + (q[0] - p[0]) * at, p[1] + (q[1] - p[1]) * at]; const d = [q[0] - p[0], q[1] - p[1]]; const L = Math.hypot(...d) || 1; const u = [d[0] / L, d[1] / L]; const n = [-u[1], u[0]];
+    const tip = [m[0] + u[0] * 6, m[1] + u[1] * 6]; const b1 = [m[0] - u[0] * 6 + n[0] * 5, m[1] - u[1] * 6 + n[1] * 5]; const b2 = [m[0] - u[0] * 6 - n[0] * 5, m[1] - u[1] * 6 - n[1] * 5];
+    body += `<polygon points="${[tip, b1, b2].map((v) => v.map((c) => c.toFixed(1)).join(',')).join(' ')}" fill="#000"/>`;
+    if (label) {
+      let [nx, ny] = n; if ((m[0] + nx - cx) ** 2 + (m[1] + ny - cy) ** 2 < (m[0] - cx) ** 2 + (m[1] - cy) ** 2) { nx = -nx; ny = -ny; }
+      body += t(m[0] + nx * 16, m[1] + ny * 16 + 5, label, 'font-weight="bold" text-anchor="middle"');
+    }
+  }
+  for (const k of dots) body += `<circle cx="${S[k][0].toFixed(1)}" cy="${S[k][1].toFixed(1)}" r="2.8" fill="#000"/>`;
+  for (const [k, [x, y]] of Object.entries(S)) {
+    const dx = x - cx; const dy = y - cy; const L = Math.hypot(dx, dy) || 1;
+    body += t(x + (dx / L) * 15 - 5, y + (dy / L) * 15 + 5, k, 'font-style="italic"');
+  }
+  return wrap(w, h, body, true);
+}

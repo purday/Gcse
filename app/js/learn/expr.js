@@ -11,6 +11,7 @@ export function normalise(s) {
     .replace(/[×·∙⋅]/g, '*')
     .replace(/÷/g, '/')
     .replace(/π/g, 'pi')
+    .replace(/[½⅓⅔¼¾⅕]/g, (c) => `(${{ '½': '1/2', '⅓': '1/3', '⅔': '2/3', '¼': '1/4', '¾': '3/4', '⅕': '1/5' }[c]})`)
     .replace(/[{[]/g, '(')
     .replace(/[}\]]/g, ')')
     .replace(/\*\*/g, '^')

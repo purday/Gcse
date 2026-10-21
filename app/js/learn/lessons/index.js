@@ -29,6 +29,8 @@ import algebraicFractions from './algebraic-fractions.js';
 import proof from './proof.js';
 import iteration from './iteration.js';
 import recurring from './recurring.js';
+import circleTheorems from './circle-theorems.js';
+import vectors from './vectors.js';
 import examTechnique from './exam-technique.js';
 
 export const LESSONS = [
@@ -58,8 +60,10 @@ export const LESSONS = [
   { group: 'push', lesson: recurring },
   { group: 'push', lesson: surds },
   { group: 'push', lesson: bounds },
+  { group: 'push', lesson: circleTheorems },
   { group: 'push', lesson: sineCosine },
   { group: 'push', lesson: similarity },
+  { group: 'push', lesson: vectors },
   { group: 'push', lesson: histograms },
 ].map(({ group, lesson }) => ({ ...lesson, group }));
 
