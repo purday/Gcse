@@ -56,6 +56,13 @@ ok('5√2', { kind: 'surd', value: 5 * Math.SQRT2, form: 'k√n' }); no('√50',
 ok('√3/3', { kind: 'surd', value: Math.sqrt(3) / 3, form: 'rational-denominator' }); no('1/√3', { kind: 'surd', value: Math.sqrt(3) / 3, form: 'rational-denominator' });
 // multi
 ok(['3', '-4'], { kind: 'multi', parts: [{ label: 'a', spec: { kind: 'number', value: 3 } }, { label: 'b', spec: { kind: 'number', value: -4 } }] });
+// algebraic fractions and functions
+const canc = { kind: 'expr', expr: '(x-3)/(x+2)', form: 'cancelled' };
+ok('(x-3)/(x+2)', canc); ok('1 - 5/(x+2)', canc); no('(x^2-9)/(x^2+5x+6)', canc); no('((x+3)(x-3))/((x+3)(x+2))', canc); no('(x+3)/(x+2)', canc);
+const frac = { kind: 'expr', expr: '2/(x+1)+3/(x-2)', form: 'fraction' };
+ok('(5x-1)/((x+1)(x-2))', frac); ok('(5x - 1)/(x^2 - x - 2)', frac); no('2/(x+1)+3/(x-2)', frac); no('(2(x-2)+3(x+1))/((x+1)(x-2))', frac); no('(5x+1)/((x+1)(x-2))', frac);
+const inv = { kind: 'expr', expr: '(x-5)/3' };
+ok('f^-1(x) = (x-5)/3', inv); ok('f⁻¹(x) = (x - 5)/3', inv); ok('f^(-1)(x)=(x-5)/3', inv); ok('fg(x) = (x-5)/3', inv); ok('y = (x-5)/3', inv); no('(x+5)/3', inv);
 // parser details
 t('2x^2 at x=3 is 18', equivalent('2x^2', '18+0x', ['x']) === false && Math.abs(parse('2x^2').t ? 1 : 0) === 1);
 t('-x^2 is -(x^2)', equivalent('-x^2', '0-x*x'));

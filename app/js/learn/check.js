@@ -6,7 +6,7 @@
 //   number    { value, dp?, sf?, tol? }          one number (fractions/surds/π typed are evaluated)
 //   numbers   { values, dp?, tol? }              several numbers in any order (e.g. roots)
 //   fraction  { num, den, simplest?: true }      exact fraction; mixed numbers accepted
-//   expr      { expr, vars?, form? }             algebra: form 'expanded' | 'factorised' | 'simplified'
+//   expr      { expr, vars?, form? }             algebra: form 'expanded' | 'factorised' | 'simplified' | 'single' | 'cancelled' | 'fraction'
 //   equation  { lhsVar, expr, vars }             "t = ..." (rearranging): expr in the other variables
 //   stdform   { value, sf? }                     a × 10^n with 1 ≤ a < 10
 //   ratio     { parts, simplest?: true }
@@ -140,8 +140,14 @@ function checkFraction(input, spec) {
   return { ok: true };
 }
 
+const unparen = (n) => (n.t === 'paren' ? unparen(n.a) : n);
+function varCount(n) {
+  if (!n || typeof n !== 'object') return 0;
+  return n.t === 'var' ? 1 : varCount(n.a) + varCount(n.b);
+}
+
 function checkExpr(input, spec) {
-  const t = stripLhs(input, '(?:[a-z]|y)').replace(/=.*$/, '');
+  const t = stripLhs(input, '(?:[a-z]{1,3}\\s*(?:\\^\\s*\\(?\\s*-\\s*1\\s*\\)?|⁻¹|-1)?\\s*\\(\\s*[a-z]\\s*\\)|[a-z])').replace(/=.*$/, '');
   const tree = tryParse(t);
   if (!tree) return { ok: false, msg: 'That expression could not be read. Use ^ for powers, e.g. x^2 + 3x.' };
   const target = tryParse(spec.expr);
@@ -152,6 +158,14 @@ function checkExpr(input, spec) {
     if (spec.fully !== false && !isFullyFactorised(tree, v)) return { ok: false, msg: 'Nearly: it can be factorised further.' };
   }
   if (spec.form === 'single' && !isSingleTerm(t)) return { ok: false, msg: 'Equivalent, but simplify it to a single term like 6x^5.' };
+  // Algebraic fractions: no more letters than the model answer means the common factor has gone.
+  if (spec.form === 'cancelled' && varCount(tree) > varCount(target)) return { ok: false, msg: 'Equivalent, but cancel the common factor to simplify fully.' };
+  if (spec.form === 'fraction') {
+    const top = unparen(tree);
+    if (top.t !== 'div') return { ok: false, msg: 'Equivalent, but write it as a single fraction: (numerator)/(denominator).' };
+    const n = unparen(top.a);
+    if (!isProductForm(n) && !(isExpanded(n) && likeTermsCollected(n, v))) return { ok: false, msg: 'Nearly: simplify the numerator.' };
+  }
   if (spec.form === 'expanded' || spec.form === 'simplified') {
     if (!isExpanded(tree)) return { ok: false, msg: 'Equivalent, but expand the brackets.' };
     if (!likeTermsCollected(tree, v)) return { ok: false, msg: 'Equivalent, but collect the like terms.' };

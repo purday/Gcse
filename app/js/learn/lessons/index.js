@@ -23,6 +23,12 @@ import probability from './probability.js';
 import treeDiagrams from './tree-diagrams.js';
 import statistics from './statistics.js';
 import histograms from './histograms.js';
+import completingSquare from './completing-square.js';
+import functions from './functions.js';
+import algebraicFractions from './algebraic-fractions.js';
+import proof from './proof.js';
+import iteration from './iteration.js';
+import recurring from './recurring.js';
 import examTechnique from './exam-technique.js';
 
 export const LESSONS = [
@@ -44,6 +50,12 @@ export const LESSONS = [
   { group: 'core', lesson: probability },
   { group: 'core', lesson: treeDiagrams },
   { group: 'core', lesson: statistics },
+  { group: 'push', lesson: completingSquare },
+  { group: 'push', lesson: functions },
+  { group: 'push', lesson: algebraicFractions },
+  { group: 'push', lesson: proof },
+  { group: 'push', lesson: iteration },
+  { group: 'push', lesson: recurring },
   { group: 'push', lesson: surds },
   { group: 'push', lesson: bounds },
   { group: 'push', lesson: sineCosine },
