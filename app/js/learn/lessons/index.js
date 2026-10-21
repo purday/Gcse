@@ -19,6 +19,9 @@ import pythagTrig from './pythag-trig.js';
 import circlesVolume from './circles-volume.js';
 import sineCosine from './sine-cosine.js';
 import similarity from './similarity.js';
+import probability from './probability.js';
+import treeDiagrams from './tree-diagrams.js';
+import statistics from './statistics.js';
 import examTechnique from './exam-technique.js';
 
 export const LESSONS = [
@@ -37,6 +40,9 @@ export const LESSONS = [
   { group: 'core', lesson: standardForm },
   { group: 'core', lesson: pythagTrig },
   { group: 'core', lesson: circlesVolume },
+  { group: 'core', lesson: probability },
+  { group: 'core', lesson: treeDiagrams },
+  { group: 'core', lesson: statistics },
   { group: 'push', lesson: surds },
   { group: 'push', lesson: bounds },
   { group: 'push', lesson: sineCosine },

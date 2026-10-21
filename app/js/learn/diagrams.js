@@ -155,8 +155,13 @@ export function grid({ xmin = -5, xmax = 5, ymin = -5, ymax = 5, lines = [], cur
 }
 
 // Two-stage tree diagram. first: [{label, p}], second: [[{label, p}], [{label, p}]]
-export function tree({ first, second, w = 340, h = 230 }) {
-  const x0 = 20; const x1 = 140; const x2 = 270;
+export function tree({ first, second, h = 230 }) {
+  // Leave room for the labels so the second set of branches starts after them.
+  const em = 8.2;
+  const l1 = Math.max(...first.map((b) => String(b.label).length));
+  const l2 = Math.max(...second.flat().map((k) => String(k.label).length));
+  const x0 = 20; const x1 = 125; const xs = x1 + 14 + l1 * em; const x2 = xs + 105;
+  const w = Math.max(300, Math.ceil(x2 + 14 + l2 * em));
   const y0 = h / 2;
   const ys1 = first.map((_, i) => (h / (first.length * 2)) * (2 * i + 1));
   let body = '';
@@ -167,8 +172,8 @@ export function tree({ first, second, w = 340, h = 230 }) {
     const span = h / first.length;
     kids.forEach((k, j) => {
       const y = ys1[i] - span / 2 + (span / (kids.length * 2)) * (2 * j + 1);
-      body += `<line x1="${x1 + 40}" y1="${ys1[i]}" x2="${x2}" y2="${y}" stroke="#000" stroke-width="1.6"/>`;
-      body += t((x1 + 40 + x2) / 2 - 10, (ys1[i] + y) / 2 - 6, k.p, 'font-size="14"') + t(x2 + 6, y + 5, k.label, 'font-size="14"');
+      body += `<line x1="${xs}" y1="${ys1[i]}" x2="${x2}" y2="${y}" stroke="#000" stroke-width="1.6"/>`;
+      body += t((xs + x2) / 2 - 10, (ys1[i] + y) / 2 - 6, k.p, 'font-size="14"') + t(x2 + 6, y + 5, k.label, 'font-size="14"');
     });
   });
   return wrap(w, h, body, false);
