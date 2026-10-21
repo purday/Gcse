@@ -107,3 +107,15 @@ export function surdTex(k, m) {
 
 export function deg(rad) { return (rad * 180) / Math.PI; }
 export function rad(d) { return (d * Math.PI) / 180; }
+
+// Signed term for continuing an expression: sterm(3, 'x') -> "+ 3x", sterm(-1, 'x') -> "- x", sterm(-4) -> "- 4"
+export function sterm(k, v = '') {
+  const abs = Math.abs(k);
+  const body = v ? `${abs === 1 ? '' : abs}${v}` : String(abs);
+  return `${k < 0 ? '-' : '+'} ${body}`;
+}
+// Leading term (no "+"): term(1, 'x') -> "x", term(-2, 'x') -> "-2x"
+export function lead(k, v = '') {
+  const abs = Math.abs(k);
+  return `${k < 0 ? '-' : ''}${v ? `${abs === 1 ? '' : abs}${v}` : abs}`;
+}

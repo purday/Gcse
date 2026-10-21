@@ -17,7 +17,7 @@
 //   text      { accept: [regex strings] }
 //   multi     { parts: [{ label, spec }] }
 
-import { parse, tryParse, evaluate, equivalent, isExpanded, isProductForm, isFullyFactorised, likeTermsCollected, normalise, vars } from './expr.js';
+import { parse, tryParse, evaluate, equivalent, isExpanded, isProductForm, isFullyFactorised, likeTermsCollected, normalise, vars, isSingleTerm } from './expr.js';
 
 const UNITS = /(cm|mm|km|kg|g|ml|l|m|s|h|°|degrees?|£|p|%|units?|cm²|cm³|m²|m³|cm\^2|cm\^3|m\^2|m\^3|mph|km\/h|m\/s|g\/cm\^?3|g\/cm³|n\/m\^?2)$/i;
 
@@ -151,6 +151,7 @@ function checkExpr(input, spec) {
     if (!isProductForm(tree)) return { ok: false, msg: 'Equivalent, but it needs to be factorised (written as a product of brackets).' };
     if (spec.fully !== false && !isFullyFactorised(tree, v)) return { ok: false, msg: 'Nearly: it can be factorised further.' };
   }
+  if (spec.form === 'single' && !isSingleTerm(t)) return { ok: false, msg: 'Equivalent, but simplify it to a single term like 6x^5.' };
   if (spec.form === 'expanded' || spec.form === 'simplified') {
     if (!isExpanded(tree)) return { ok: false, msg: 'Equivalent, but expand the brackets.' };
     if (!likeTermsCollected(tree, v)) return { ok: false, msg: 'Equivalent, but collect the like terms.' };
@@ -193,6 +194,19 @@ function checkRatio(input, spec) {
   const k = parts[0] / spec.parts[0];
   if (!parts.every((p, i) => near(p, spec.parts[i] * k, 1e-9))) return { ok: false };
   if (spec.simplest && (!parts.every(Number.isInteger) || parts.reduce((g, p) => gcd(g, p), 0) !== 1)) return { ok: false, msg: 'Equivalent ratio, but simplify it fully (whole numbers, no common factor).' };
+  return { ok: true };
+}
+
+function checkCoords(input, spec) {
+  const pairs = [...clean(input).matchAll(/\(\s*([^,()]+?)\s*,\s*([^()]+?)\s*\)/g)].map((m) => [num(m[1]), num(m[2])]);
+  if (!pairs.length || pairs.some((p) => p.some((x) => !Number.isFinite(x)))) return { ok: false, msg: 'Write each point in brackets, e.g. (3, 4), (-4, -3)' };
+  if (pairs.length !== spec.points.length) return { ok: false, msg: `There ${spec.points.length === 1 ? 'is 1 point' : `are ${spec.points.length} points`}.` };
+  const left = [...spec.points];
+  for (const [x, y] of pairs) {
+    const i = left.findIndex((p) => near(p[0], x, spec.tol ?? 1e-6) && near(p[1], y, spec.tol ?? 1e-6));
+    if (i === -1) return { ok: false, msg: left.some((p) => near(p[0], x, 1e-6)) ? 'Check the y-value that goes with each x.' : undefined };
+    left.splice(i, 1);
+  }
   return { ok: true };
 }
 
@@ -268,6 +282,7 @@ export function check(input, spec) {
     case 'stdform': return checkStdform(input, spec);
     case 'ratio': return checkRatio(input, spec);
     case 'coord': return checkCoord(input, spec);
+    case 'coords': return checkCoords(input, spec);
     case 'inequality': return checkInequality(input, spec);
     case 'surd': return checkSurd(input, spec);
     case 'choice': return { ok: Number(input) === spec.correct };

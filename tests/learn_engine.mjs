@@ -33,6 +33,11 @@ ok('(2x+5)(2x-5)', dots); no('(4x^2-25)', dots);
 const exp = { kind: 'expr', expr: 'x^2-4x-21', form: 'expanded' };
 ok('x^2 - 4x - 21', exp); ok('x²-4x-21', exp); no('(x-7)(x+3)', exp); no('x^2+3x-7x-21', exp);
 ok('2x^2+x-15', { kind: 'expr', expr: '(2x-5)(x+3)', form: 'expanded' });
+const fac3 = { kind: 'expr', expr: '12x^2y-8xy^2', form: 'factorised' };
+ok('4xy(3x-2y)', fac3); no('2xy(6x-4y)', fac3); no('4x(3xy-2y^2)', fac3);
+ok('(3, 4), (-4, -3)', { kind: 'coords', points: [[3, 4], [-4, -3]] }); no('(3, -3), (-4, 4)', { kind: 'coords', points: [[3, 4], [-4, -3]] });
+ok('24x^3', { kind: 'expr', expr: '24x^3', form: 'single' }); no('6x^5*4x^-2', { kind: 'expr', expr: '24x^3', form: 'single' }); ok('16x^12y^8', { kind: 'expr', expr: '16x^12y^8', form: 'single', vars: ['x', 'y'] });
+ok('r = √(A/π)', { kind: 'equation', lhsVar: 'r', expr: 'sqrt(A/pi)'.toLowerCase(), vars: ['a'] });
 // rearranging
 const eq = { kind: 'equation', lhsVar: 't', expr: '(v-u)/a', vars: ['v', 'u', 'a'] };
 ok('t = (v-u)/a', eq); ok('t=(v−u)÷a', eq); no('t = v-u/a', eq); no('t = (v-u)/t', eq);

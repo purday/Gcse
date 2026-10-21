@@ -186,11 +186,12 @@ export function equivalent(srcA, srcB, varNames) {
   const B = typeof srcB === 'string' ? tryParse(srcB) : srcB;
   if (!A || !B) return false;
   const names = varNames || [...new Set([...vars(A), ...vars(B)])];
-  const pts = [0.37, 1.9, -2.3, 3.7, -0.81, 5.13, 2.6];
+  const pts = [0.37, 1.9, -2.3, 3.7, -0.81, 5.13, 2.6, 1.27, 4.41, 0.83, 2.17, 6.3];
   let tested = 0;
   for (let i = 0; i < pts.length; i++) {
     const env = {};
-    names.forEach((n, k) => { env[n] = pts[(i + k * 3) % pts.length] + k * 0.11; });
+    // Later points are all positive so square roots and logs stay defined.
+    names.forEach((n, k) => { env[n] = (i >= 7 ? Math.abs(pts[(i + k * 5) % pts.length]) + 0.5 : pts[(i + k * 3) % pts.length]) + k * 0.11; });
     let a;
     let b;
     try {
@@ -289,11 +290,46 @@ function factors(node) {
   return [n];
 }
 
-// Fully factorised over the integers (single variable): every bracket has
-// coefficient content 1 and no quadratic bracket still has rational roots.
+// A single term as { coef, pow: { x: 2, y: 1 } }, or null if it is not a monomial.
+function monomial(node) {
+  const n = strip(node);
+  if (n.t === 'num') return { coef: n.v, pow: {} };
+  if (n.t === 'var') return { coef: 1, pow: { [n.n]: 1 } };
+  if (n.t === 'neg') { const m = monomial(n.a); return m && { coef: -m.coef, pow: m.pow }; }
+  if (n.t === 'pow') {
+    const b = monomial(n.a); const e = strip(n.b);
+    if (!b || e.t !== 'num' || !Number.isInteger(e.v) || e.v < 0) return null;
+    return { coef: b.coef ** e.v, pow: Object.fromEntries(Object.entries(b.pow).map(([k, v]) => [k, v * e.v])) };
+  }
+  if (n.t === 'mul') {
+    const a = monomial(n.a); const b = monomial(n.b);
+    if (!a || !b) return null;
+    const pow = { ...a.pow };
+    for (const [k, v] of Object.entries(b.pow)) pow[k] = (pow[k] || 0) + v;
+    return { coef: a.coef * b.coef, pow };
+  }
+  return null;
+}
+function sumTerms(node) {
+  const n = strip(node);
+  if (n.t === 'add') return [...sumTerms(n.a), ...sumTerms(n.b)];
+  if (n.t === 'sub') return [...sumTerms(n.a), ...sumTerms(n.b).map((t) => ({ t: 'neg', a: t }))];
+  return [n];
+}
+
+// Fully factorised over the integers: no bracket has a common numeric factor or
+// a letter common to all its terms, and no quadratic bracket still has rational roots.
 export function isFullyFactorised(node, v = 'x') {
   if (!isProductForm(node)) return false;
   for (const f of factors(node)) {
+    if (isSum(f)) {
+      const monos = sumTerms(f).map(monomial);
+      if (monos.every(Boolean) && monos.every((m) => Number.isInteger(m.coef))) {
+        if (monos.reduce((g, m) => gcd(g, m.coef), 0) > 1) return false;
+        const shared = Object.keys(monos[0].pow).filter((k) => monos.every((m) => (m.pow[k] || 0) > 0));
+        if (shared.length) return false;
+      }
+    }
     const p = toPoly(f, v);
     if (!p) continue;
     const deg = p.reduceRight((d, c, i) => (d === -1 && Math.abs(c) > 1e-9 ? i : d), -1);
@@ -310,6 +346,14 @@ export function isFullyFactorised(node, v = 'x') {
     }
   }
   return true;
+}
+
+// One term only, each letter written once: 6x^5, -3a^2b, 4x^-2 (what "simplify" means for index laws).
+export function isSingleTerm(src) {
+  const t = normalise(src).replace(/\s+/g, '').toLowerCase();
+  if (!/^-?(\d+(\.\d+)?)?([a-z](\^\(?-?\d+(\/\d+)?\)?)?)+$|^-?\d+(\.\d+)?$/.test(t)) return false;
+  const letters = t.replace(/\^\(?-?\d+(\/\d+)?\)?/g, '').replace(/[^a-z]/g, '');
+  return new Set(letters).size === letters.length;
 }
 
 // Like terms collected: no two top-level terms of the same degree.

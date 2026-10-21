@@ -27,6 +27,7 @@ function texOk(where, src) {
   // String.raw keeps "\n" literally: catch a backslash-n that is not a LaTeX command like \neq.
   if (/\\n(?![a-z])/.test(String(src ?? ''))) fail(where, `literal \\n in text: ${String(src).slice(0, 60)}`);
   for (const { tex, display } of mathSegments(src)) {
+    if (/\\\\[a-zA-Z]/.test(tex)) fail(where, `doubled backslash (renders as a line break): "${tex}"`);
     try {
       katex.renderToString(tex, { displayMode: display, throwOnError: true, strict: 'error' });
     } catch (e) {
@@ -50,6 +51,7 @@ function derive(spec) {
     case 'stdform': { const v = spec.sf ? Number(roundSf(spec.value, spec.sf)) : spec.value; const e = Math.floor(Math.log10(Math.abs(v))); return `${+(v / 10 ** e).toPrecision(10)} × 10^${e}`; }
     case 'ratio': return spec.parts.join(':');
     case 'coord': return `(${spec.x}, ${spec.y})`;
+    case 'coords': return spec.points.map(([x, y]) => `(${+x.toPrecision(12)}, ${+y.toPrecision(12)})`).join(', ');
     case 'inequality': {
       if (spec.lo != null && spec.hi != null) return `${spec.lo} ${spec.loInc ? '<=' : '<'} ${spec.v} ${spec.hiInc ? '<=' : '<'} ${spec.hi}`;
       if (spec.lo != null) return `${spec.v} ${spec.loInc ? '>=' : '>'} ${spec.lo}`;
@@ -66,7 +68,7 @@ function derive(spec) {
 // Plausible wrong answers that must be rejected.
 function wrongs(spec) {
   switch (spec.kind) {
-    case 'number': return [String(spec.value + (Math.abs(spec.value) > 5 ? 1 : 0.5) * (spec.dp != null ? 10 ** -Math.max(0, spec.dp - 1) * 3 : 3)), String(-spec.value - 7)];
+    case 'number': return [String(spec.value + (Math.abs(spec.value) > 5 ? 1 : 0.5) * (spec.dp != null ? 10 ** -Math.max(0, spec.dp - 1) * 3 : 3)), String(spec.value + 7)];
     case 'numbers': return spec.values.length > 1 ? [spec.values.slice(1).join(', '), spec.values.map((v) => v + 1).join(', ')] : [String(spec.values[0] + 1)];
     case 'fraction': return [`${spec.num + 1}/${spec.den}`];
     case 'ratio': return [spec.parts.map((p, i) => (i ? p + 1 : p)).join(':')];
