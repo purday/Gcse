@@ -112,8 +112,8 @@ $$${eqn(a2, b2, c2)}$$`,
           steps: [
             md`${sameSign ? 'Subtract' : 'Add'} the equations: $${lead(sameSign ? a1 - a2 : a1 + a2, 'x')} = ${sameSign ? c1 - c2 : c1 + c2}$`,
             md`$x = ${x}$`,
-            md`Substitute into the first: $${a1 === 1 ? '' : `${a1} \times `}${br(x)} ${sterm(b, 'y')} = ${c1}$, so $${lead(b, 'y')} = ${c1 - a1 * x}$ and $y = ${y}$`,
-            md`Check: $${a2 === 1 ? '' : `${a2} \times `}${br(x)} ${b2 < 0 ? '-' : '+'} ${Math.abs(b2) === 1 ? '' : `${Math.abs(b2)} \times `}${br(y)} = ${c2}$ ✓`,
+            md`Substitute into the first: $${a1 === 1 ? '' : `${a1} \\times `}${br(x)} ${sterm(b, 'y')} = ${c1}$, so $${lead(b, 'y')} = ${c1 - a1 * x}$ and $y = ${y}$`,
+            md`Check: $${a2 === 1 ? '' : `${a2} \\times `}${br(x)} ${b2 < 0 ? '-' : '+'} ${Math.abs(b2) === 1 ? '' : `${Math.abs(b2)} \\times `}${br(y)} = ${c2}$ ✓`,
           ],
           verify: () => (a1 * x + b * y === c1 && a2 * x + b2 * y === c2 && (sameSign ? a1 - a2 : a1 + a2) !== 0) || 'inconsistent',
         };

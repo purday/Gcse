@@ -156,7 +156,7 @@ $$x^2 - 49 = (x + 7)(x - 7) \qquad 4x^2 - 25 = (2x + 5)(2x - 5)$$`,
           typed: poly(co, 'x', false),
           show: md`$${poly(co)}$`,
           wrong: [poly([b * b, 0, a * a], 'x', false)],
-          hints: [md`Write it as $(${lin(a, b)})(${lin(a, b)})$.`, md`The middle term is $2 	imes ${lead(a, 'x')} 	imes ${br(b)} = ${2 * a * b}x$.`],
+          hints: [md`Write it as $(${lin(a, b)})(${lin(a, b)})$.`, md`The middle term is $2 \times ${lead(a, 'x')} \times ${br(b)} = ${2 * a * b}x$.`],
           steps: [md`$(${lin(a, b)})(${lin(a, b)})$`, md`$${poly([0, 0, a * a])} ${sterm(a * b, 'x')} ${sterm(a * b, 'x')} ${sterm(b * b)}$`, md`$= ${poly(co)}$`],
           diagnose: (input) => (/\(/.test(input) ? undefined : equivalent(input.replace(/\s/g, ''), poly([b * b, 0, a * a], 'x', false)) ? 'You have missed the middle term: (a + b)² = a² + 2ab + b².' : undefined),
         };

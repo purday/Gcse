@@ -26,6 +26,8 @@ function mathSegments(src) {
 function texOk(where, src) {
   // String.raw keeps "\n" literally: catch a backslash-n that is not a LaTeX command like \neq.
   if (/\\n(?![a-z])/.test(String(src ?? ''))) fail(where, `literal \\n in text: ${String(src).slice(0, 60)}`);
+  // A non-raw template turns \times into TAB+"imes", \frac into form feed+"rac", \beta into backspace.
+  if (/[\t\b\f\v\r]/.test(String(src ?? ''))) fail(where, `control character from an unescaped backslash: ${JSON.stringify(String(src).slice(0, 80))}`);
   for (const { tex, display } of mathSegments(src)) {
     if (/\\\\[a-zA-Z]/.test(tex)) fail(where, `doubled backslash (renders as a line break): "${tex}"`);
     // "sin x" without a backslash renders as italic s·i·n.
@@ -114,7 +116,10 @@ for (const lesson of LESSONS) {
       instances++;
       const W = `${T} seed ${seed}`;
       if (!inst.q || !inst.a || !inst.show || !Array.isArray(inst.steps) || !inst.steps.length) { fail(W, 'missing q/a/show/steps'); break; }
-      if (seed <= 40) for (const f of [inst.q, inst.show, ...inst.steps, ...(inst.hints || [])]) texOk(W, f);
+      const texts = [inst.q, inst.show, ...inst.steps, ...(inst.hints || [])];
+      if (seed <= 40) for (const f of texts) texOk(W, f);
+      // Unescaped backslashes can hide in rare branches, so check every seed for those.
+      else if (texts.some((f) => /[\t\b\f\v\r]/.test(String(f ?? '')))) fail(W, 'control character from an unescaped backslash');
       const typed = inst.typed ?? derive(inst.a);
       if (typed == null) { fail(W, `no typed answer for ${inst.a.kind}${inst.a.form ? `/${inst.a.form}` : ''}`); break; }
       const res = check(typed, inst.a);

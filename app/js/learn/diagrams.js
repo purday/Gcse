@@ -196,13 +196,16 @@ export function histogram({ classes, fd, xlabel = '', ylabel = 'Frequency densit
   const maxFd = Math.max(...fd) * 1.15;
   const X = (v) => 50 + ((v - lo) / (hi - lo)) * (w - 70);
   const Y = (v) => h - 40 - (v / maxFd) * (h - 70);
-  let body = `<line x1="50" y1="${Y(0)}" x2="${w - 15}" y2="${Y(0)}" stroke="#000" stroke-width="1.5"/><line x1="50" y1="${Y(0)}" x2="50" y2="20" stroke="#000" stroke-width="1.5"/>`;
+  const step = maxFd > 8 ? 2 : maxFd > 3 ? 1 : 0.5;
+  // Light grid in fifths of a labelled step so bar heights can be read like on squared paper.
+  let body = '';
+  for (let v = step / 5; v <= maxFd + 1e-9; v += step / 5) body += `<line x1="50" y1="${Y(v).toFixed(1)}" x2="${w - 15}" y2="${Y(v).toFixed(1)}" stroke="#c9d3e0" stroke-width="${Math.abs(v / step - Math.round(v / step)) < 1e-6 ? 1 : 0.5}"/>`;
+  body += `<line x1="50" y1="${Y(0)}" x2="${w - 15}" y2="${Y(0)}" stroke="#000" stroke-width="1.5"/><line x1="50" y1="${Y(0)}" x2="50" y2="20" stroke="#000" stroke-width="1.5"/>`;
   classes.forEach(([a, b], i) => {
-    body += `<rect x="${X(a)}" y="${Y(fd[i])}" width="${X(b) - X(a)}" height="${Y(0) - Y(fd[i])}" fill="#e9eef6" stroke="#000" stroke-width="1.5"/>`;
+    body += `<rect x="${X(a)}" y="${Y(fd[i])}" width="${X(b) - X(a)}" height="${Y(0) - Y(fd[i])}" fill="#e9eef6" fill-opacity="0.75" stroke="#000" stroke-width="1.5"/>`;
   });
   const ticks = [...new Set(classes.flat())];
   ticks.forEach((v) => { body += t(X(v), Y(0) + 16, v, 'font-size="11" text-anchor="middle"'); });
-  const step = maxFd > 8 ? 2 : maxFd > 3 ? 1 : 0.5;
   for (let v = 0; v <= maxFd; v += step) body += `<line x1="46" y1="${Y(v)}" x2="50" y2="${Y(v)}" stroke="#000"/>` + t(42, Y(v) + 4, v, 'font-size="11" text-anchor="end"');
   body += t(w / 2, h - 6, xlabel, 'font-size="12" text-anchor="middle"');
   body += `<text x="14" y="${h / 2}" ${FONT} font-size="12" transform="rotate(-90 14 ${h / 2})" text-anchor="middle">${esc(ylabel)}</text>`;

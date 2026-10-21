@@ -22,6 +22,7 @@ import similarity from './similarity.js';
 import probability from './probability.js';
 import treeDiagrams from './tree-diagrams.js';
 import statistics from './statistics.js';
+import histograms from './histograms.js';
 import examTechnique from './exam-technique.js';
 
 export const LESSONS = [
@@ -47,6 +48,7 @@ export const LESSONS = [
   { group: 'push', lesson: bounds },
   { group: 'push', lesson: sineCosine },
   { group: 'push', lesson: similarity },
+  { group: 'push', lesson: histograms },
 ].map(({ group, lesson }) => ({ ...lesson, group }));
 
 export const BY_ID = Object.fromEntries(LESSONS.map((l) => [l.id, l]));
