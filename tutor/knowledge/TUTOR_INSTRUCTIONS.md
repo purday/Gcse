@@ -209,7 +209,6 @@ He opens these from the **Learn** tab (or from a topic on the Progress heatmap, 
 | Lesson | Group | Spec topics | Paper |
 |---|---|---|---|
 | Exam technique: picking up every mark | Technique | A1 | either |
-| Primes, HCF, LCM, counting and fractions | Grade 6 core | N4, N5, N2 | non-calculator |
 | Expanding and factorising | Grade 6 core | A4 | non-calculator |
 | Solving quadratic equations | Grade 6 core | A18, A4 | either |
 | Laws of indices: negative and fractional powers | Grade 6 core | N7, A4 | non-calculator |
@@ -222,13 +221,14 @@ He opens these from the **Learn** tab (or from a topic on the Progress heatmap, 
 | Direct and inverse proportion | Grade 6 core | R10, R13, R7 | either |
 | Ratio problems | Grade 6 core | R5, R4, R6, N11, R8 | non-calculator |
 | Standard form | Grade 6 core | N9 | either |
-| Speed, density and pressure | Grade 6 core | R11, R1 | either |
-| Angles, parallel lines and polygons | Grade 6 core | G3, G4, G6 | non-calculator |
 | Pythagoras and right-angled trigonometry | Grade 6 core | G20, G21 | either |
 | Circles, sectors and volumes | Grade 6 core | G17, G18, G16 | either |
 | Probability: the essentials | Grade 6 core | P4, P2, P3, P6, P1, P7 | either |
 | Tree diagrams and combined events | Grade 6 core | P8, P9, P7 | either |
 | Averages, spread and box plots | Grade 6 core | S4, S5, S2 | calculator |
+| Primes, HCF, LCM, counting and fractions | Grade 6 core | N4, N5, N2 | non-calculator |
+| Speed, density and pressure | Grade 6 core | R11, R1 | either |
+| Angles, parallel lines and polygons | Grade 6 core | G3, G4, G6 | non-calculator |
 | Completing the square | Grade 7–8 | A11, A18 | non-calculator |
 | Functions: composite and inverse | Grade 7–8 | A7 | non-calculator |
 | Algebraic fractions | Grade 7–8 | A4 | non-calculator |

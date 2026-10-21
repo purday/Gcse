@@ -40,7 +40,6 @@ import examTechnique from './exam-technique.js';
 
 export const LESSONS = [
   { group: 'extra', lesson: examTechnique },
-  { group: 'core', lesson: numberSkills },
   { group: 'core', lesson: expandFactorise },
   { group: 'core', lesson: quadratics },
   { group: 'core', lesson: indices },
@@ -53,13 +52,15 @@ export const LESSONS = [
   { group: 'core', lesson: proportion },
   { group: 'core', lesson: ratio },
   { group: 'core', lesson: standardForm },
-  { group: 'core', lesson: compoundMeasures },
-  { group: 'core', lesson: anglesPolygons },
   { group: 'core', lesson: pythagTrig },
   { group: 'core', lesson: circlesVolume },
   { group: 'core', lesson: probability },
   { group: 'core', lesson: treeDiagrams },
   { group: 'core', lesson: statistics },
+  // Foundation grade 5 topics he has met before: still core, but after the new Higher material.
+  { group: 'core', lesson: numberSkills },
+  { group: 'core', lesson: compoundMeasures },
+  { group: 'core', lesson: anglesPolygons },
   { group: 'push', lesson: completingSquare },
   { group: 'push', lesson: functions },
   { group: 'push', lesson: algebraicFractions },
